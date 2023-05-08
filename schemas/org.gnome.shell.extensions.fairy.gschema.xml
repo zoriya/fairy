@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+	<schema id="org.gnome.shell.extensions.fairy" path="/org/gnome/shell/extensions/fairy/">
+		<!-- Behavior things -->
+		<key type="s" name="default-layout">
+			<default>'tiling'</default>
+			<summary>Available: floating, tiling, monocle</summary>
+		</key>
+
+		<!-- Visual things -->
+		<key type="b" name="show-layout">
+			<default>true</default>
+			<summary>Show the layout icon on the panel</summary>
+		</key>
+
+		<key type="b" name="focus-border">
+			<default>true</default>
+			<summary>Show window border on focused window</summary>
+		</key>
+
+		<key type="s" name="focus-border-color">
+			<default>'rgba(236, 94, 94, 1)'</default>
+			<summary>The focused border's color</summary>
+		</key>
+
+		<key type="u" name="gap-size">
+			<default>4</default>
+			<summary> The size of the gap between windows in the workarea</summary>
+		</key>
+
+		<key type="b" name="smart-gaps">
+			<default>true</default>
+			<summary>True to hide gaps when there is a single window</summary>
+		</key>
+	</schema>
+	<schema id="org.gnome.shell.extensions.fairy.keybinds" path="/org/gnome/shell/extensions/fairy/keybinds/">
+		<key type="as" name="set-layout-tiling">
+			<default><![CDATA[['<Super>t']]]></default>
+			<summary>Switch to the tiling layout</summary>
+		</key>
+		<key type="as" name="set-layout-monocle">
+			<default><![CDATA[['<Super>m']]]></default>
+			<summary>Switch to the monocle layout</summary>
+		</key>
+		<key type="as" name="set-layout-floating">
+			<default><![CDATA[['<Shift><Super>f']]]></default>
+			<summary>Switch to the floating layout</summary>
+		</key>
+
+		<key type="as" name="cycle-next">
+			<default><![CDATA[['<Super>k']]]></default>
+			<summary>Cycle next</summary>
+		</key>
+		<key type="as" name="cycle-prev">
+			<default><![CDATA[['<Super>j']]]></default>
+			<summary>Cycle prev</summary>
+		</key>
+
+		<key type="as" name="incrmfact">
+			<default><![CDATA[['<Super>h']]]></default>
+			<summary>Increase the master area</summary>
+		</key>
+		<key type="as" name="decmfact">
+			<default><![CDATA[['<Super>l']]]></default>
+			<summary>Decrease the master area</summary>
+		</key>
+
+		<key type="as" name="incrnmaster">
+			<default><![CDATA[['<Super>i']]]></default>
+			<summary>Increase the number of windows in the master area</summary>
+		</key>
+		<key type="as" name="decnmaster">
+			<default><![CDATA[['<Super>d']]]></default>
+			<summary>Decrease the number of windows in the master area</summary>
+		</key>
+
+		<key type="as" name="zoom">
+			<default><![CDATA[['<Super><Return>']]]></default>
+			<summary>Swap the current window with the master</summary>
+		</key>
+
+		<key type="as" name="kill">
+			<default><![CDATA[['<Super>c']]]></default>
+			<summary>Kill the current app</summary>
+		</key>
+		<key type="as" name="force-kill">
+			<default><![CDATA[['<Shift><Super>c']]]></default>
+			<summary>Force kill the current app</summary>
+		</key>
+
+		<!-- TODO: Add fullscreen, swapnext/swapprev, monitors and tags key -->
+	</schema>
+</schemalist>
