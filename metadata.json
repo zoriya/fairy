@@ -1,0 +1,8 @@
+{
+  "name": "Fairy",
+  "description": "Bringing dynamic tiling to gnome",
+  "uuid": "fairy@zoriya.dev",
+  "shell-version": [
+    "44"
+  ]
+}
