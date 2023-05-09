@@ -1,29 +1,54 @@
-/* extension.js
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
+const Gio = imports.gi.Gio;
+const St = imports.gi.St;
 
-/* exported init */
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Main = imports.ui.main;
+const PanelMenu = imports.ui.panelMenu;
+
+const Windows = Me.imports.sources.windows;
 
 class Extension {
-	constructor() {}
+	constructor() {
+		this._layoutIndicator = null;
+		this._windows = new Windows.WindowManager();
+	}
 
-	enable() {}
+	enable() {
+		this._windows.enable();
 
-	disable() {}
+		this.settings = ExtensionUtils.getSettings(
+			"org.gnome.shell.extensions.fairy"
+		);
+
+		let indicatorName = `${Me.metadata.name} Layout Indicator`;
+
+		this._layoutIndicator = new PanelMenu.Button(0.0, indicatorName, false);
+
+		// Add an icon
+		let icon = new St.Icon({
+			gicon: new Gio.ThemedIcon({ name: "face-laugh-symbolic" }),
+			style_class: "system-status-icon",
+		});
+		this._layoutIndicator.add_child(icon);
+
+		this.settings.bind(
+			"show-layout",
+			this._layoutIndicator,
+			"visible",
+			Gio.SettingsBindFlags.DEFAULT
+		);
+
+		Main.panel.addToStatusArea(indicatorName, this._layoutIndicator);
+	}
+
+	disable() {
+		this._windows.disable();
+		this._layoutIndicator.destroy();
+		this._layoutIndicator = null;
+
+		this.settings = null;
+	}
 }
 
 function init() {
