@@ -82,7 +82,6 @@ var WindowManager = GObject.registerClass(
 			this._layout.windows = [];
 		}
 
-
 		_bindSignals() {
 			this._signals = [
 				global.display.connect("window-created", (_display, window) =>
@@ -124,7 +123,13 @@ var WindowManager = GObject.registerClass(
 		 * @param {number} tags
 		 */
 		render(mon, tags) {
-			const monGeo = global.display.get_monitor_geometry(mon);
+			// We don't care which workspace it is, we just want the geometry
+			// for the current monitor without the panel.
+			const monGeo = global.display
+				.get_workspace_manager()
+				.get_active_workspace()
+				.get_work_area_for_monitor(mon);
+
 			for (const window of this._layout.render(mon, tags)) {
 				if (window.handle.get_monitor() !== mon)
 					window.handle.move_to_monitor(mon);
@@ -147,10 +152,8 @@ var WindowManager = GObject.registerClass(
 					window.x,
 					window.y,
 					window.width,
-					window.height
-				);
-				log(
-					"Resizing: ",
+					window.height,
+					"Real values",
 					monGeo.x + (window.x * monGeo.width) / 100,
 					monGeo.y + (window.y * monGeo.height) / 100,
 					(window.width * monGeo.width) / 100,
