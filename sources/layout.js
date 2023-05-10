@@ -2,16 +2,6 @@
 
 const GObject = imports.gi.GObject;
 
-class FairyWindow {
-	constructor(handle) {
-		this.handle = handle;
-		this.floating = false;
-		this.fullscreen = false;
-		this.monitor = 0;
-		this.tags = 1;
-	}
-}
-
 var Layout = GObject.registerClass(
 	class Layout extends GObject.Object {
 		_init() {
@@ -37,14 +27,29 @@ var Layout = GObject.registerClass(
 			/**
 			 * @type {FairyWindow[]}
 			 */
-			this._windows = [];
+			this.windows = [];
 		}
 
-		newWindow(mon, workspace, handle) {
-			this._windows.push(new FairyWindow(handle));
-			// this._monitors[mon] ??= new Map();
-			// this._monitors[mon][workspace] ??= [];
-			// this._monitors[mon][workspace].push(new FairyWindow(handle));
+		newWindow(handle) {
+			const mon = handle.get_monitor();
+			const tags = handle.on_all_workspaces
+				? ~0
+				: handle.get_workspace().index() + 1;
+			this.windows.push({
+				handle,
+				monitor: mon,
+				tags,
+				// Needed for the popByActor that might get called when the actor is already deleted
+				actor: handle.get_compositor_private(),
+			});
+		}
+
+		popByActor(actor) {
+			const window = this.windows.find((x) => x.actor === actor);
+			if (!window) return null;
+			this.windows = this.windows.filter((x) => x !== window);
+			console.log("Popped", this.windows.length);
+			return window;
 		}
 
 		/**
@@ -62,7 +67,7 @@ var Layout = GObject.registerClass(
 		 */
 		render(mon, tags) {
 			const { nmaster, nfact } = this._layout;
-			const windows = this._windows.filter(
+			const windows = this.windows.filter(
 				(x) => x.monitor === mon && x.tags & tags
 			);
 			log(`${windows.length} windows for monitor ${mon} with tags ${tags}`);
@@ -70,21 +75,23 @@ var Layout = GObject.registerClass(
 			// TODO: Implement other layouts
 			if (this._layout.type === "tiled") {
 				return windows.map((x, i) => {
-					const stackLength = i <= nmaster
-						? Math.min(nmaster, windows.length)
-						: window.length - nmaster;
-					const stackIndex = i <= nmaster ? i : i - nmaster;
+					const stackLength =
+						i < nmaster
+							? Math.min(nmaster, windows.length)
+							: windows.length - nmaster;
+					const stackIndex = i < nmaster ? i : i - nmaster;
 					return {
 						handle: x.handle,
 						maximized: false,
 						minimized: false,
-						x: i <= nmaster ? 0 : nfact,
-						y: stackIndex * (100 - (100 / stackLength)),
-						width: windows.length <= nmaster
-							? 100
-							: i <= nmaster
-								? nfact
-								: 100 - nfact,
+						x: i < nmaster ? 0 : nfact,
+						y: stackIndex * (100 / stackLength),
+						width:
+							windows.length <= nmaster
+								? 100
+								: i < nmaster
+									? nfact
+									: 100 - nfact,
 						height: 100 / stackLength,
 					};
 				});
