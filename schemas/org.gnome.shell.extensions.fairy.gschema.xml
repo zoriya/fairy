@@ -57,11 +57,11 @@
 		</key>
 
 		<key type="as" name="incrmfact">
-			<default><![CDATA[['<Super>h']]]></default>
+			<default><![CDATA[['<Super>l']]]></default>
 			<summary>Increase the master area</summary>
 		</key>
 		<key type="as" name="decmfact">
-			<default><![CDATA[['<Super>l']]]></default>
+			<default><![CDATA[['<Super>h']]]></default>
 			<summary>Decrease the master area</summary>
 		</key>
 
@@ -77,15 +77,6 @@
 		<key type="as" name="zoom">
 			<default><![CDATA[['<Super><Return>']]]></default>
 			<summary>Swap the current window with the master</summary>
-		</key>
-
-		<key type="as" name="kill">
-			<default><![CDATA[['<Super>c']]]></default>
-			<summary>Kill the current app</summary>
-		</key>
-		<key type="as" name="force-kill">
-			<default><![CDATA[['<Shift><Super>c']]]></default>
-			<summary>Force kill the current app</summary>
 		</key>
 
 		<!-- TODO: Add fullscreen, swapnext/swapprev, monitors and tags key -->

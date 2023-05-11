@@ -47,6 +47,7 @@ var StateManager = GObject.registerClass(
 		 */
 		newWindow(handle) {
 			this.windows.push(this._windowFromHandle(handle));
+			log("New window on tag", this.windows[this.windows.length - 1].tags);
 		}
 
 		/**

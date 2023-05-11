@@ -56,7 +56,7 @@ var KeyboardManager = GObject.registerClass(
 
 			this._addBinding("incrnmaster", () => {
 				const mon = global.display.get_current_monitor();
-				this._state.monitors[mon].mfact += 1;
+				this._state.monitors[mon].nmaster += 1;
 				this._renderer.render(mon);
 			});
 			this._addBinding("decnmaster", () => {

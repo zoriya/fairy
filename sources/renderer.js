@@ -12,8 +12,8 @@ var Renderer = GObject.registerClass(
 	class Renderer extends GObject.Object {
 		_init(state) {
 			super._init();
-			this._state = state
-			log("fairy init");
+			this._state = state;
+			log("fairy init!");
 		}
 
 		disable() {
@@ -22,8 +22,21 @@ var Renderer = GObject.registerClass(
 
 		enable() {
 			this._bindSignals();
+
 			for (const window of global.display.list_all_windows())
 				this.trackWindow(window);
+
+			const workspace = global.display
+				.get_workspace_manager()
+				.get_active_workspace_index();
+			const tags = 0b1 << workspace;
+			if (Meta.prefs_get_workspaces_only_on_primary()) {
+				this._state.monitors[global.display.get_primary_monitor()].tags = tags;
+			} else {
+				for (let i = 0; i < this._state.monitors.length; i++)
+					this._state.monitors[i].tags = tags;
+			}
+
 			this.renderAll();
 		}
 
@@ -56,7 +69,7 @@ var Renderer = GObject.registerClass(
 			// Wait until window actor is available
 			let waitForWindowId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
 				// Stop if the window doesn't exist anymore or the parent is gone
-				if (!window.get_workspace() || !Main.overview.visible)
+				if (!window.get_workspace())
 					return GLib.SOURCE_REMOVE;
 
 				// Continue if there's no actor available yet
@@ -87,8 +100,8 @@ var Renderer = GObject.registerClass(
 			}
 			this._displaySignals = undefined;
 
-			for (const signal of this._wmSignals) {
-				global.window_manager.disconnect(signal);
+			for (const signal of this._workspaceSignals) {
+				global.workspace_manager.disconnect(signal);
 			}
 			this._wmSignals = undefined;
 
@@ -117,18 +130,26 @@ var Renderer = GObject.registerClass(
 				//
 				// }),
 			];
-			this._wmSignals = [
-				global.window_manager.connect("switch-workspace", (_wm, _from, to, _direction) => {
+			this._workspaceSignals = [
+				global.workspace_manager.connect("active-workspace-changed", () => {
 					// Convert gnome workspaces to fairy's tags
-					to = 0b1 << to;
+					const workspace = global.display
+						.get_workspace_manager()
+						.get_active_workspace_index();
+					const tags = 0b1 << workspace;
+					log("Switch to tags", tags);
 					if (Meta.prefs_get_workspaces_only_on_primary()) {
-						this._state.monitors[global.display.get_primary_monitor()].tags = to;
+						const primaryMon = global.display.get_primary_monitor();
+						this._state.monitors[primaryMon].tags = tags;
+						this.render(primaryMon, tags);
 					} else {
-						for (let i = 0; i < this._state.monitors.length; i++)
-							this._state.monitors[i].tags = to;
+						for (let i = 0; i < this._state.monitors.length; i++) {
+							this._state.monitors[i].tags = tags;
+							this.render(i, tags);
+						}
 					}
 				}),
-			]
+			];
 		}
 
 		/**
@@ -178,7 +199,6 @@ var Renderer = GObject.registerClass(
 		 * @param {number?} tags
 		 */
 		render(mon, tags) {
-			console.log("monitors", this._state.monitors)
 			if (!tags) tags = this._state.monitors[mon].tags;
 
 			// We don't care which workspace it is, we just want the geometry
@@ -197,7 +217,7 @@ var Renderer = GObject.registerClass(
 				}
 				if (
 					window.handle["maximized-vertically"] !=
-					window.handle["maximized-horizontally"] ||
+						window.handle["maximized-horizontally"] ||
 					window.handle["maximized-vertically"] != window.maximized
 				) {
 					if (window.maximized) window.handle.maximize(Meta.MaximizeFlags.BOTH);
