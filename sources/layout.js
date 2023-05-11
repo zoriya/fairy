@@ -31,18 +31,40 @@ var Layout = GObject.registerClass(
 			this.windows = [];
 		}
 
-		newWindow(handle) {
+		/**
+		 * @param {Meta.Window} handle
+		 * @returns {FairyWindow}
+		 */
+		_windowFromHandle(handle) {
 			const mon = handle.get_monitor();
 			const tags = handle.on_all_workspaces
 				? ~0
-				: handle.get_workspace().index() + 1;
-			this.windows.push({
+				: 0b1 << handle.get_workspace().index();
+			return {
 				handle,
 				monitor: mon,
 				tags,
 				// Needed for the popByActor that might get called when the actor is already deleted
 				actor: handle.get_compositor_private(),
-			});
+			}
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 */
+		newWindow(handle) {
+			this.windows.push(this._windowFromHandle(handle));
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 * @returns {[FairyWindow, FairyWindow]} [old, new]
+		 */
+		updateByHandle(handle) {
+			const i = this.windows.findIndex(x => x.handle === handle);
+			const old = {...this.windows[i]};
+			this.windows[i] = this._windowFromHandle(handle);
+			return [old, this.windows[i]];
 		}
 
 		popByActor(actor) {

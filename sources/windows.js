@@ -29,6 +29,22 @@ var WindowManager = GObject.registerClass(
 			this.renderAll();
 		}
 
+		/**
+		 * @params {Meta.Window} handle
+		 * @returns {boolean}
+		 */
+		_isValidWindow(handle) {
+			// Check if we marked the window as invalid before (unmanaging call).
+			if (!handle._valid) return false;
+
+			let windowType = handle.get_window_type();
+			return (
+				windowType === Meta.WindowType.NORMAL ||
+				windowType === Meta.WindowType.MODAL_DIALOG ||
+				windowType === Meta.WindowType.DIALOG
+			);
+		}
+
 		// Stolen from https://gitlab.gnome.org/GNOME/gnome-shell/-/merge_requests/183
 		// Trying to move a newly-created window without using this (or waiting an arbitrary delay) crashes the gnome-shell.
 		// @window: the metaWindow to wait for
@@ -74,6 +90,9 @@ var WindowManager = GObject.registerClass(
 			this._signals = undefined;
 
 			for (const window of this._layout.windows) {
+				if (window._signals) {
+					for (const signal of window._signals) window.disconnect(signal);
+				}
 				let actor = window.handle.get_compositor_private();
 				if (actor && actor._signals) {
 					for (const signal of actor._signals) actor.disconnect(signal);
@@ -91,6 +110,9 @@ var WindowManager = GObject.registerClass(
 						this.renderForWindow(window);
 					})
 				),
+				// global.display.connect("window-entered-monitor", (_display, monitor, window) => {
+				//
+				// }),
 			];
 		}
 
@@ -99,6 +121,17 @@ var WindowManager = GObject.registerClass(
 		 */
 		trackWindow(window) {
 			// Add window signals
+			window._signals = [
+				window.connect("unmanaging", (window) => {
+					window._valid = false;
+				}),
+				window.connect("workspace-changed", (window) => {
+					if (!this._isValidWindow(window)) return;
+					const [oldW, newW] = this._layout.updateByHandle(window);
+					if (oldW) this.render(oldW.monitor, oldW.tags);
+					if (newW) this.render(newW.monitor, newW.tags);
+				}),
+			];
 			const actor = window.get_compositor_private();
 			actor._signals = [
 				actor.connect("destroy", (actor) => {
@@ -113,9 +146,8 @@ var WindowManager = GObject.registerClass(
 		renderAll() {
 			const monN = global.display.get_n_monitors();
 			// TODO: Support different tags on different monitors.
-			const tags = global.display
-				.get_workspace_manager()
-				.get_active_workspace_index() + 1;
+			const tags =
+				global.display.get_workspace_manager().get_active_workspace_index() + 1;
 			for (let mon = 0; mon < monN; mon++) {
 				this.render(mon, tags);
 			}
