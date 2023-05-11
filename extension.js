@@ -6,16 +6,22 @@ const Me = ExtensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 
-const Windows = Me.imports.sources.windows;
+const State = Me.imports.sources.state;
+const Renderer = Me.imports.sources.renderer;
+const Keybinds = Me.imports.sources.keybinds;
 
 class Extension {
 	constructor() {
+		this._state = new State.StateManager();
+		this._renderer = new Renderer.Renderer(this._state);
+		this._keybinds = new Keybinds.KeyboardManager(this._state, this._renderer);
+
 		this._layoutIndicator = null;
-		this._windows = new Windows.WindowManager();
 	}
 
 	enable() {
-		this._windows.enable();
+		this._renderer.enable();
+		this._keybinds.enable();
 
 		this.settings = ExtensionUtils.getSettings(
 			"org.gnome.shell.extensions.fairy"
@@ -43,7 +49,8 @@ class Extension {
 	}
 
 	disable() {
-		this._windows.disable();
+		this._renderer.disable();
+		this._keybinds.disable();
 		this._layoutIndicator.destroy();
 		this._layoutIndicator = null;
 

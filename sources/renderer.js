@@ -8,13 +8,11 @@ const Mainloop = imports.mainloop;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
-const Layout = Me.imports.sources.layout;
-
-var WindowManager = GObject.registerClass(
-	class WindowManager extends GObject.Object {
-		_init() {
+var Renderer = GObject.registerClass(
+	class Renderer extends GObject.Object {
+		_init(state) {
 			super._init();
-			this._layout = new Layout.Layout();
+			this._state = state
 			log("fairy init");
 		}
 
@@ -84,12 +82,17 @@ var WindowManager = GObject.registerClass(
 		}
 
 		_removeSignals() {
-			for (const signal of this._signals) {
+			for (const signal of this._displaySignals) {
 				global.display.disconnect(signal);
 			}
-			this._signals = undefined;
+			this._displaySignals = undefined;
 
-			for (const window of this._layout.windows) {
+			for (const signal of this._wmSignals) {
+				global.window_manager.disconnect(signal);
+			}
+			this._wmSignals = undefined;
+
+			for (const window of this._state.windows) {
 				if (window._signals) {
 					for (const signal of window._signals) window.disconnect(signal);
 				}
@@ -99,11 +102,11 @@ var WindowManager = GObject.registerClass(
 					actor._signals = [];
 				}
 			}
-			this._layout.windows = [];
+			this._state.windows = [];
 		}
 
 		_bindSignals() {
-			this._signals = [
+			this._displaySignals = [
 				global.display.connect("window-created", (_display, window) =>
 					this._waitForWindow(window, () => {
 						this.trackWindow(window);
@@ -114,6 +117,18 @@ var WindowManager = GObject.registerClass(
 				//
 				// }),
 			];
+			this._wmSignals = [
+				global.window_manager.connect("switch-workspace", (_wm, _from, to, _direction) => {
+					// Convert gnome workspaces to fairy's tags
+					to = 0b1 << to;
+					if (Meta.prefs_get_workspaces_only_on_primary()) {
+						this._state.monitors[global.display.get_primary_monitor()].tags = to;
+					} else {
+						for (let i = 0; i < this._state.monitors.length; i++)
+							this._state.monitors[i].tags = to;
+					}
+				}),
+			]
 		}
 
 		/**
@@ -127,7 +142,7 @@ var WindowManager = GObject.registerClass(
 				}),
 				window.connect("workspace-changed", (window) => {
 					if (!this._isValidWindow(window)) return;
-					const [oldW, newW] = this._layout.updateByHandle(window);
+					const [oldW, newW] = this._state.updateByHandle(window);
 					if (oldW) this.render(oldW.monitor, oldW.tags);
 					if (newW) this.render(newW.monitor, newW.tags);
 				}),
@@ -135,12 +150,12 @@ var WindowManager = GObject.registerClass(
 			const actor = window.get_compositor_private();
 			actor._signals = [
 				actor.connect("destroy", (actor) => {
-					const faWindow = this._layout.popByActor(actor);
+					const faWindow = this._state.popByActor(actor);
 					if (faWindow) this.render(faWindow.monitor, faWindow.tags);
 				}),
 			];
 
-			this._layout.newWindow(window);
+			this._state.newWindow(window);
 		}
 
 		renderAll() {
@@ -155,18 +170,17 @@ var WindowManager = GObject.registerClass(
 
 		renderForWindow(window) {
 			const mon = window.get_monitor();
-			// TODO: The on_all_workspaces handling is faulty.
-			const workspace = window.on_all_workspaces
-				? ~0
-				: window.get_workspace().index() + 1;
-			this.render(mon, workspace);
+			this.render(mon);
 		}
 
 		/**
 		 * @param {number} mon
-		 * @param {number} tags
+		 * @param {number?} tags
 		 */
 		render(mon, tags) {
+			console.log("monitors", this._state.monitors)
+			if (!tags) tags = this._state.monitors[mon].tags;
+
 			// We don't care which workspace it is, we just want the geometry
 			// for the current monitor without the panel.
 			const monGeo = global.display
@@ -174,7 +188,7 @@ var WindowManager = GObject.registerClass(
 				.get_active_workspace()
 				.get_work_area_for_monitor(mon);
 
-			for (const window of this._layout.render(mon, tags)) {
+			for (const window of this._state.render(mon, tags)) {
 				if (window.handle.get_monitor() !== mon)
 					window.handle.move_to_monitor(mon);
 				if (window.handle.minimized !== window.minimized) {

@@ -2,19 +2,20 @@
 
 const GObject = imports.gi.GObject;
 
-var Layout = GObject.registerClass(
-	class Layout extends GObject.Object {
+var StateManager = GObject.registerClass(
+	class StateManager extends GObject.Object {
 		_init() {
 			super._init();
 			// Simpler to set 30 monitors than track creation/supression of monitors.
-			this._monitors = new Array(30).map(() => ({
+			this.monitors = [...new Array(30)].map(() => ({
 				/**
 				 * @type {Meta.Window} focused window's handle
 				 */
 				focused: null,
+				tags: 1,
 				layout: "tiled",
 				nmaster: 1,
-				nfact: 60,
+				mfact: 55,
 			}));
 
 			/**
@@ -80,7 +81,7 @@ var Layout = GObject.registerClass(
 		 * @returns WindowGeometry[]
 		 */
 		render(mon, tags) {
-			const { layout, nmaster, nfact } = this._monitors[mon];
+			const { layout, nmaster, mfact } = this.monitors[mon];
 			const windows = this.windows.filter(
 				(x) => x.monitor === mon && x.tags & tags
 			);
@@ -91,7 +92,7 @@ var Layout = GObject.registerClass(
 				case "monocle":
 					return [
 						{
-							handle: this._monitors[mon].focused,
+							handle: this.monitors[mon].focused,
 							maximized: true,
 							minimized: false,
 							x: 0,
@@ -111,17 +112,19 @@ var Layout = GObject.registerClass(
 							handle: x.handle,
 							maximized: false,
 							minimized: false,
-							x: i < nmaster ? 0 : nfact,
+							x: i < nmaster ? 0 : mfact,
 							y: stackIndex * (100 / stackLength),
 							width:
 								windows.length <= nmaster
 									? 100
 									: i < nmaster
-										? nfact
-										: 100 - nfact,
+										? mfact
+										: 100 - mfact,
 							height: 100 / stackLength,
 						};
 					});
+				default:
+					return [];
 			}
 		}
 	}
