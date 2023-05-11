@@ -18,6 +18,7 @@ var Layout = GObject.registerClass(
 			//  */
 			// this._monitorsTags = new Map();
 
+			// TODO: duplicate this layout for each monitors.
 			this._layout = {
 				type: "tiled",
 				nmaster: 1,
@@ -48,7 +49,6 @@ var Layout = GObject.registerClass(
 			const window = this.windows.find((x) => x.actor === actor);
 			if (!window) return null;
 			this.windows = this.windows.filter((x) => x !== window);
-			console.log("Popped", this.windows.length);
 			return window;
 		}
 

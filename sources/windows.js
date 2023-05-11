@@ -24,8 +24,9 @@ var WindowManager = GObject.registerClass(
 
 		enable() {
 			this._bindSignals();
-			// TODO: Add all existing windows to the layout and render.
-			// this.render();
+			for (const window of global.display.list_all_windows())
+				this.trackWindow(window);
+			this.renderAll();
 		}
 
 		// Stolen from https://gitlab.gnome.org/GNOME/gnome-shell/-/merge_requests/183
@@ -107,6 +108,17 @@ var WindowManager = GObject.registerClass(
 			];
 
 			this._layout.newWindow(window);
+		}
+
+		renderAll() {
+			const monN = global.display.get_n_monitors();
+			// TODO: Support different tags on different monitors.
+			const tags = global.display
+				.get_workspace_manager()
+				.get_active_workspace_index() + 1;
+			for (let mon = 0; mon < monN; mon++) {
+				this.render(mon, tags);
+			}
 		}
 
 		renderForWindow(window) {
