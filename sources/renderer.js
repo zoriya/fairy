@@ -46,7 +46,7 @@ var Renderer = GObject.registerClass(
 		 */
 		_isValidWindow(handle) {
 			// Check if we marked the window as invalid before (unmanaging call).
-			if (!handle._valid) return false;
+			if (handle._isInvalid) return false;
 
 			let windowType = handle.get_window_type();
 			return (
@@ -156,10 +156,11 @@ var Renderer = GObject.registerClass(
 		 * @param {Meta.Window} window
 		 */
 		trackWindow(window) {
+			if (!this._isValidWindow(window)) return;
 			// Add window signals
 			window._signals = [
 				window.connect("unmanaging", (window) => {
-					window._valid = false;
+					window._isInvalid = true;
 				}),
 				window.connect("workspace-changed", (window) => {
 					if (!this._isValidWindow(window)) return;
