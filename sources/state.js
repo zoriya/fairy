@@ -113,10 +113,10 @@ var StateManager = GObject.registerClass(
 							handle: x.handle,
 							maximized: false,
 							minimized: false,
-							x: i < nmaster ? 0 : mfact,
+							x: (i < nmaster || nmaster <= 0) ? 0 : mfact,
 							y: stackIndex * (100 / stackLength),
 							width:
-								windows.length <= nmaster
+								(windows.length <= nmaster || nmaster <= 0)
 									? 100
 									: i < nmaster
 										? mfact
