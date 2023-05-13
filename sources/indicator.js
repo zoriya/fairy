@@ -1,9 +1,14 @@
 "use strict";
 
+const Gio = imports.gi.Gio;
+const St = imports.gi.St;
+
 const GObject = imports.gi.GObject;
 const Main = imports.ui.main;
 const Meta = imports.gi.Meta;
 const Shell = imports.gi.Shell;
+const PanelMenu = imports.ui.panelMenu;
+
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
@@ -20,12 +25,9 @@ var Indicator = GObject.registerClass(
 				"org.gnome.shell.extensions.fairy"
 			);
 
-			let indicatorName = `${Me.metadata.name} Indicator`;
-
-			this._layoutIndicator = new PanelMenu.Button(0.0, indicatorName, false);
-
-			// Add an icon
-			let icon = new St.Icon({
+			const indicatorName =  `${Me.metadata.name} Indicator`;
+			this._layoutIndicator = new PanelMenu.Button(0.0, indicatorName);
+			const icon = new St.Icon({
 				gicon: new Gio.ThemedIcon({ name: "face-laugh-symbolic" }),
 				style_class: "system-status-icon",
 			});
@@ -37,7 +39,6 @@ var Indicator = GObject.registerClass(
 				"visible",
 				Gio.SettingsBindFlags.DEFAULT
 			);
-
 			Main.panel.addToStatusArea(indicatorName, this._layoutIndicator);
 		}
 

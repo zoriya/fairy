@@ -123,6 +123,7 @@ var Renderer = GObject.registerClass(
 				global.display.connect("window-created", (_display, window) =>
 					this._waitForWindow(window, () => {
 						this.trackWindow(window);
+						this._state.focus(window);
 						this.renderForWindow(window);
 					})
 				),
@@ -159,10 +160,18 @@ var Renderer = GObject.registerClass(
 			if (!this._isValidWindow(window)) return;
 			// Add window signals
 			window._signals = [
-				window.connect("unmanaging", (window) => {
-					window._isInvalid = true;
-					const faWindow = this._state.popByActor(actor);
-					if (faWindow) this.render(faWindow.monitor, faWindow.tags);
+				window.connect("unmanaging", (handle) => {
+					handle._isInvalid = true;
+					const idx = this._state.workIndexByHandle(handle);
+					const faWindow = this._state.popByHandle(handle);
+					if (!faWindow) return;
+
+					const tags = this._state.monitors[faWindow.monitor].tags;
+					// Since we retrieved the idx, the window as been removed so we don't need to +1.
+					const newWindow = this._state.workIndex(faWindow.monitor, tags, idx);
+					if (newWindow) this._state.focus(newWindow.handle);
+
+					this.render(faWindow.monitor, tags);
 				}),
 				window.connect("workspace-changed", (window) => {
 					if (!this._isValidWindow(window)) return;
@@ -175,13 +184,6 @@ var Renderer = GObject.registerClass(
 					this._state.monitors[window.get_monitor()].focused = window;
 				}),
 			];
-			const actor = window.get_compositor_private();
-			// actor._signals = [
-			// 	actor.connect("destroy", (actor) => {
-			// 		const faWindow = this._state.popByActor(actor);
-			// 		if (faWindow) this.render(faWindow.monitor, faWindow.tags);
-			// 	}),
-			// ];
 
 			this._state.newWindow(window);
 		}

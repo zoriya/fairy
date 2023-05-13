@@ -48,13 +48,21 @@ function fillPreferencesWindow(window) {
 
 	const keybinds = new Adw.PreferencesPage();
 	keybinds.set_title("Keybinds");
+
+	const layoutBindings = new Adw.PreferencesGroup();
+	keybinds.add(layoutBindings);
+	layoutBindings.add(_createKeybind(settings, "set-layout-tiling"));
+	layoutBindings.add(_createKeybind(settings, "set-layout-monocle"));
+	layoutBindings.add(_createKeybind(settings, "set-layout-floating"));
+
+	const focusBindings = new Adw.PreferencesGroup();
+	keybinds.add(focusBindings);
+	focusBindings.add(_createKeybind(settings, "cycle-next"));
+	focusBindings.add(_createKeybind(settings, "cycle-prev"));
+	focusBindings.add(_createKeybind(settings, "zoom"));
+
 	const tileBindings = new Adw.PreferencesGroup();
 	keybinds.add(tileBindings);
-
-	tileBindings.add(_createKeybind(settings, "set-layout-tiling"));
-	tileBindings.add(_createKeybind(settings, "set-layout-monocle"));
-	tileBindings.add(_createKeybind(settings, "set-layout-floating"));
-
 	tileBindings.add(_createKeybind(settings, "incrmfact"));
 	tileBindings.add(_createKeybind(settings, "decmfact"));
 	tileBindings.add(_createKeybind(settings, "incrnmaster"));

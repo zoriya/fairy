@@ -1,10 +1,7 @@
-const Gio = imports.gi.Gio;
-const St = imports.gi.St;
+"use strict";
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
 
 const State = Me.imports.sources.state;
 const Renderer = Me.imports.sources.renderer;

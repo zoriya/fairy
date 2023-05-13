@@ -12,8 +12,13 @@ var StateManager = GObject.registerClass(
 				 * @type {Meta.Window} focused window's handle
 				 */
 				focused: null,
+				/**
+				 * @type {Meta.Window} window's handle that was focused just before a zoom
+				 */
+				beforeZoom: null,
 				tags: 1,
 				layout: "tiling",
+				oldLayout: "monocle",
 				nmaster: 1,
 				mfact: 55,
 			}));
@@ -46,8 +51,8 @@ var StateManager = GObject.registerClass(
 		 * @param {Meta.Window} handle
 		 */
 		newWindow(handle) {
-			this.windows.push(this._windowFromHandle(handle));
-			log("New window on tag", this.windows[this.windows.length - 1].tags);
+			this.windows.unshift(this._windowFromHandle(handle));
+			log("New window on tag", this.windows[0].tags);
 		}
 
 		/**
@@ -61,11 +66,51 @@ var StateManager = GObject.registerClass(
 			return [old, this.windows[i]];
 		}
 
-		popByActor(actor) {
-			const window = this.windows.find((x) => x.actor === actor);
+		popByHandle(handle) {
+			const window = this.windows.find((x) => x.handle === handle);
 			if (!window) return null;
 			this.windows = this.windows.filter((x) => x !== window);
 			return window;
+		}
+
+		/**
+		 * @param {number} mon
+		 * @param {number} tags
+		 * @param {number} idx (will loop if over/under flow)
+		 * @returns {FairyWindow}
+		 */
+		workIndex(mon, tags, idx) {
+			const windows = this.windows.filter(
+				(x) => x.monitor === mon && x.tags & tags
+			);
+			if (idx < 0) idx = windows.length + idx;
+			return windows[idx % windows.length];
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 * @returns {number} idx
+		 */
+		workIndexByHandle(handle) {
+			const window = this.windows.find((x) => x.handle === handle);
+			const windows = this.windows.filter(
+				(x) => x.monitor === window.monitor && x.tags & window.tags
+			);
+			return windows.findIndex((x) => x.handle === handle);
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 * @param {boolean} internalOnly
+		 */
+		focus(handle, internalOnly = false) {
+			const mon = handle.get_monitor();
+			this.monitors[mon].focused = handle;
+			// This was focused without a zoom, removing the old zoom value.
+			this.monitors[mon].beforeZoom = null;
+
+			if (!internalOnly)
+				handle.focus(global.display.get_current_time());
 		}
 
 		/**
@@ -116,14 +161,14 @@ var StateManager = GObject.registerClass(
 							handle: x.handle,
 							maximized: false,
 							minimized: false,
-							x: (i < nmaster || nmaster <= 0) ? 0 : mfact,
+							x: i < nmaster || nmaster <= 0 ? 0 : mfact,
 							y: stackIndex * (100 / stackLength),
 							width:
-								(windows.length <= nmaster || nmaster <= 0)
+								windows.length <= nmaster || nmaster <= 0
 									? 100
 									: i < nmaster
-										? mfact
-										: 100 - mfact,
+									? mfact
+									: 100 - mfact,
 							height: 100 / stackLength,
 						};
 					});

@@ -39,25 +39,47 @@ var KeyboardManager = GObject.registerClass(
 			Main.wm.removeKeybinding(key);
 		}
 
+		_switchLayout(mode) {
+			const mon = global.display.get_current_monitor();
+			const state = this._state.monitors[mon];
+			const currentLayout = state.layout;
+			if (state.layout === mode)
+				state.layout = state.oldLayout;
+			else
+				state.layout = mode;
+			state.oldLayout = currentLayout;
+			this._renderer.render(mon);
+		}
+
 		enable() {
-			this._addBinding("set-layout-tiling", () => {
+			this._addBinding("set-layout-tiling", () => this._switchLayout("tiling"));
+			this._addBinding("set-layout-monocle", () => this._switchLayout("monocle"));
+			this._addBinding("set-layout-floating", () => this._switchLayout("floating"));
+
+
+			this._addBinding("cycle-next", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
-				state.layout = "tiling";
-				this._renderer.render(mon);
+				const idx = this._state.workIndexByHandle(state.focused);
+				this._state.focus(this._state.workIndex(mon, state.tags, idx + 1));
 			});
-			this._addBinding("set-layout-monocle", () => {
+			this._addBinding("cycle-prev", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
-				state.layout = "monocle";
-				this._renderer.render(mon);
+				const idx = this._state.workIndexByHandle(state.focused);
+				this._state.focus(this._state.workIndex(mon, state.tags, idx - 1));
 			});
-			this._addBinding("set-layout-floating", () => {
+			this._addBinding("zoom", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
-				state.layout = "floating";
-				this._renderer.render(mon);
+				const idx = this._state.workIndexByHandle(state.focused);
+				if (this._state.workIndexByHandle(state.focused))
+					this._state.focus(this._state.workIndex(mon, state.tags, 0));
+				else
+					this.state.focus(state.beforeZoom);
+				state.beforeZoom = state.focused;
 			});
+
 
 			this._addBinding("incrmfact", () => {
 				const mon = global.display.get_current_monitor();
@@ -89,6 +111,10 @@ var KeyboardManager = GObject.registerClass(
 			this._removeBinding("set-layout-tiling");
 			this._removeBinding("set-layout-monocle");
 			this._removeBinding("set-layout-floating");
+
+			this._removeBinding("cycle-next");
+			this._removeBinding("cycle-prev");
+			this._removeBinding("zoom");
 
 			this._removeBinding("incrmfact");
 			this._removeBinding("decrmfact");
