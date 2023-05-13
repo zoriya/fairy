@@ -55,11 +55,6 @@
 			<default><![CDATA[['<Super>j']]]></default>
 			<summary>Cycle prev</summary>
 		</key>
-		<key type="as" name="zoom">
-			<default><![CDATA[['<Super>Return']]]></default>
-			<summary>Swap the current window with the master</summary>
-		</key>
-
 
 		<key type="as" name="incrmfact">
 			<default><![CDATA[['<Super>l']]]></default>
@@ -79,6 +74,19 @@
 			<summary>Decrease the number of windows in the master area</summary>
 		</key>
 
-		<!-- TODO: Add fullscreen, swapnext/swapprev, monitors and tags key -->
+		<key type="as" name="swap-next">
+			<default><![CDATA[['<Super><Shift>k']]]></default>
+			<summary>Swap the current window with next</summary>
+		</key>
+		<key type="as" name="swap-prev">
+			<default><![CDATA[['<Super><Shift>j']]]></default>
+			<summary>Swap the current window with previous</summary>
+		</key>
+		<key type="as" name="zoom">
+			<default><![CDATA[['<Super>Return']]]></default>
+			<summary>Swap the current window with the master</summary>
+		</key>
+
+		<!-- TODO: Add fullscreen, monitors and tags key -->
 	</schema>
 </schemalist>

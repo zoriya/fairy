@@ -59,7 +59,12 @@ function fillPreferencesWindow(window) {
 	keybinds.add(focusBindings);
 	focusBindings.add(_createKeybind(settings, "cycle-next"));
 	focusBindings.add(_createKeybind(settings, "cycle-prev"));
-	focusBindings.add(_createKeybind(settings, "zoom"));
+
+	const swapBindings = new Adw.PreferencesGroup();
+	keybinds.add(swapBindings);
+	swapBindings.add(_createKeybind(settings, "swap-next"));
+	swapBindings.add(_createKeybind(settings, "swap-prev"));
+	swapBindings.add(_createKeybind(settings, "zoom"));
 
 	const tileBindings = new Adw.PreferencesGroup();
 	keybinds.add(tileBindings);

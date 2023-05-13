@@ -16,7 +16,7 @@ var StateManager = GObject.registerClass(
 				 */
 				focused: null,
 				/**
-				 * @type {Meta.Window} window's handle that was focused just before a zoom
+				 * @type {number | null} window's index that was focused just before a zoom
 				 */
 				beforeZoom: null,
 				tags: 1,
@@ -54,8 +54,10 @@ var StateManager = GObject.registerClass(
 		 * @param {Meta.Window} handle
 		 */
 		newWindow(handle) {
-			this.windows.unshift(this._windowFromHandle(handle));
-			log("New window on tag", this.windows[0].tags);
+			const window = this._windowFromHandle(handle);
+			this.monitors[window.monitor].beforeZoom = null;
+			log("New window on tag", window.tags);
+			this.windows.unshift(window);
 		}
 
 		/**
@@ -72,6 +74,7 @@ var StateManager = GObject.registerClass(
 		popByHandle(handle) {
 			const window = this.windows.find((x) => x.handle === handle);
 			if (!window) return null;
+			this.monitors[window.monitor].beforeZoom = null;
 			this.windows = this.windows.filter((x) => x !== window);
 			return window;
 		}
@@ -125,9 +128,30 @@ var StateManager = GObject.registerClass(
 		/**
 		 * @param {Meta.Window} handle
 		 */
-		warpCusror(handle) {
+		warpCursor(handle) {
 			// TODO: Warp the cursor
 			// TODO: Check if the warp-cursor setting is enabled.
+		}
+
+		/**
+		 * @param {number} mon
+		 * @param {number} tags
+		 * @param {number} idx
+		 * @param {number} newIdx (will loop if over/under flow)
+		 */
+		swap(mon, tags, idx, newIdx) {
+			const windows = this.windows.filter(
+				(x) => x.monitor === mon && x.tags & tags
+			);
+			if (newIdx < 0) newIdx = windows.length + newIdx;
+			newIdx %= windows.length;
+
+			const gIdx = this.windows.findIndex(x => x === windows[idx]);
+			const gNewIdx = this.windows.findIndex(x => x === windows[newIdx]);
+
+			const tmp = this.windows[gIdx];
+			this.windows[gIdx] = this.windows[gNewIdx];
+			this.windows[gNewIdx] = tmp;
 		}
 
 		/**
