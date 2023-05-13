@@ -161,6 +161,8 @@ var Renderer = GObject.registerClass(
 			window._signals = [
 				window.connect("unmanaging", (window) => {
 					window._isInvalid = true;
+					const faWindow = this._state.popByActor(actor);
+					if (faWindow) this.render(faWindow.monitor, faWindow.tags);
 				}),
 				window.connect("workspace-changed", (window) => {
 					if (!this._isValidWindow(window)) return;
@@ -168,14 +170,18 @@ var Renderer = GObject.registerClass(
 					if (oldW) this.render(oldW.monitor, oldW.tags);
 					if (newW) this.render(newW.monitor, newW.tags);
 				}),
-			];
-			const actor = window.get_compositor_private();
-			actor._signals = [
-				actor.connect("destroy", (actor) => {
-					const faWindow = this._state.popByActor(actor);
-					if (faWindow) this.render(faWindow.monitor, faWindow.tags);
+				window.connect("focus", (window) => {
+					if (!this._isValidWindow(window)) return;
+					this._state.monitors[window.get_monitor()].focused = window;
 				}),
 			];
+			const actor = window.get_compositor_private();
+			// actor._signals = [
+			// 	actor.connect("destroy", (actor) => {
+			// 		const faWindow = this._state.popByActor(actor);
+			// 		if (faWindow) this.render(faWindow.monitor, faWindow.tags);
+			// 	}),
+			// ];
 
 			this._state.newWindow(window);
 		}
@@ -212,6 +218,9 @@ var Renderer = GObject.registerClass(
 			for (const window of this._state.render(mon, tags)) {
 				if (window.handle.get_monitor() !== mon)
 					window.handle.move_to_monitor(mon);
+
+				if (window.floating) continue;
+
 				if (window.handle.minimized !== window.minimized) {
 					if (window.minimized) window.handle.minimize();
 					else window.handle.unminimize();
@@ -221,7 +230,11 @@ var Renderer = GObject.registerClass(
 						window.handle["maximized-horizontally"] ||
 					window.handle["maximized-vertically"] != window.maximized
 				) {
-					if (window.maximized) window.handle.maximize(Meta.MaximizeFlags.BOTH);
+					if (window.maximized) {
+						window.handle.maximize(Meta.MaximizeFlags.BOTH);
+						// Do not resize if maximizing to keep the overview tiled.
+						continue;
+					}
 					else window.handle.unmaximize(Meta.MaximizeFlags.BOTH);
 				}
 

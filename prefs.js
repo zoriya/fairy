@@ -51,6 +51,10 @@ function fillPreferencesWindow(window) {
 	const tileBindings = new Adw.PreferencesGroup();
 	keybinds.add(tileBindings);
 
+	tileBindings.add(_createKeybind(settings, "set-layout-tiling"));
+	tileBindings.add(_createKeybind(settings, "set-layout-monocle"));
+	tileBindings.add(_createKeybind(settings, "set-layout-floating"));
+
 	tileBindings.add(_createKeybind(settings, "incrmfact"));
 	tileBindings.add(_createKeybind(settings, "decmfact"));
 	tileBindings.add(_createKeybind(settings, "incrnmaster"));

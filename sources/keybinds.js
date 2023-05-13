@@ -12,7 +12,6 @@ var KeyboardManager = GObject.registerClass(
 			super._init();
 			this._state = state;
 			this._renderer = renderer;
-			// TODO: Handle rerender from here.
 		}
 
 		/**
@@ -41,6 +40,25 @@ var KeyboardManager = GObject.registerClass(
 		}
 
 		enable() {
+			this._addBinding("set-layout-tiling", () => {
+				const mon = global.display.get_current_monitor();
+				const state = this._state.monitors[mon];
+				state.layout = "tiling";
+				this._renderer.render(mon);
+			});
+			this._addBinding("set-layout-monocle", () => {
+				const mon = global.display.get_current_monitor();
+				const state = this._state.monitors[mon];
+				state.layout = "monocle";
+				this._renderer.render(mon);
+			});
+			this._addBinding("set-layout-floating", () => {
+				const mon = global.display.get_current_monitor();
+				const state = this._state.monitors[mon];
+				state.layout = "floating";
+				this._renderer.render(mon);
+			});
+
 			this._addBinding("incrmfact", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
@@ -68,9 +86,12 @@ var KeyboardManager = GObject.registerClass(
 		}
 
 		disable() {
+			this._removeBinding("set-layout-tiling");
+			this._removeBinding("set-layout-monocle");
+			this._removeBinding("set-layout-floating");
+
 			this._removeBinding("incrmfact");
 			this._removeBinding("decrmfact");
-
 			this._removeBinding("incrnmaster");
 			this._removeBinding("decrnmaster");
 		}

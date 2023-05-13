@@ -13,7 +13,7 @@ var StateManager = GObject.registerClass(
 				 */
 				focused: null,
 				tags: 1,
-				layout: "tiled",
+				layout: "tiling",
 				nmaster: 1,
 				mfact: 55,
 			}));
@@ -79,6 +79,9 @@ var StateManager = GObject.registerClass(
 		 * @property {number} y - in percentage from the top left
 		 * @property {number} width - in percentage (0-100)
 		 * @property {number} height - in percentage
+		 * @property {boolean} minimized
+		 * @property {boolean} maximized
+		 * @property {boolean} floating
 		 * @returns WindowGeometry[]
 		 */
 		render(mon, tags) {
@@ -102,7 +105,7 @@ var StateManager = GObject.registerClass(
 							height: 100,
 						},
 					];
-				case "tiled":
+				case "tiling":
 					return windows.map((x, i) => {
 						const stackLength =
 							i < nmaster
@@ -124,6 +127,11 @@ var StateManager = GObject.registerClass(
 							height: 100 / stackLength,
 						};
 					});
+				case "floating":
+					return windows.map((x) => ({
+						handle: x.handle,
+						floating: true,
+					}));
 				default:
 					return [];
 			}
