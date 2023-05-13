@@ -1,6 +1,9 @@
 "use strict";
 
 const GObject = imports.gi.GObject;
+const GLib = imports.gi.GLib;
+const Mainloop = imports.mainloop;
+
 
 var StateManager = GObject.registerClass(
 	class StateManager extends GObject.Object {
@@ -101,16 +104,30 @@ var StateManager = GObject.registerClass(
 
 		/**
 		 * @param {Meta.Window} handle
-		 * @param {boolean} internalOnly
 		 */
-		focus(handle, internalOnly = false) {
-			const mon = handle.get_monitor();
-			this.monitors[mon].focused = handle;
-			// This was focused without a zoom, removing the old zoom value.
-			this.monitors[mon].beforeZoom = null;
+		focus(handle) {
+			GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+				const mon = handle.get_monitor();
+				this.monitors[mon].focused = handle;
+				// This was focused without a zoom, removing the old zoom value.
+				this.monitors[mon].beforeZoom = null;
 
-			if (!internalOnly)
+				log("focusing window with title", handle.get_title());
+				handle.raise();
 				handle.focus(global.display.get_current_time());
+				handle.activate(global.display.get_current_time());
+				this.warpCursor(handle);
+				// Do not retrigger this idle.
+				return false;
+			});
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 */
+		warpCusror(handle) {
+			// TODO: Warp the cursor
+			// TODO: Check if the warp-cursor setting is enabled.
 		}
 
 		/**

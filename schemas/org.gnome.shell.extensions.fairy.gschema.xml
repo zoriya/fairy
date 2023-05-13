@@ -56,7 +56,7 @@
 			<summary>Cycle prev</summary>
 		</key>
 		<key type="as" name="zoom">
-			<default><![CDATA[['<Super><Return>']]]></default>
+			<default><![CDATA[['<Super>Return']]]></default>
 			<summary>Swap the current window with the master</summary>
 		</key>
 

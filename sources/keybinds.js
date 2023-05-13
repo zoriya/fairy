@@ -43,43 +43,45 @@ var KeyboardManager = GObject.registerClass(
 			const mon = global.display.get_current_monitor();
 			const state = this._state.monitors[mon];
 			const currentLayout = state.layout;
-			if (state.layout === mode)
-				state.layout = state.oldLayout;
-			else
-				state.layout = mode;
+			if (state.layout === mode) state.layout = state.oldLayout;
+			else state.layout = mode;
 			state.oldLayout = currentLayout;
 			this._renderer.render(mon);
 		}
 
 		enable() {
 			this._addBinding("set-layout-tiling", () => this._switchLayout("tiling"));
-			this._addBinding("set-layout-monocle", () => this._switchLayout("monocle"));
-			this._addBinding("set-layout-floating", () => this._switchLayout("floating"));
-
+			this._addBinding("set-layout-monocle", () =>
+				this._switchLayout("monocle")
+			);
+			this._addBinding("set-layout-floating", () =>
+				this._switchLayout("floating")
+			);
 
 			this._addBinding("cycle-next", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
 				const idx = this._state.workIndexByHandle(state.focused);
-				this._state.focus(this._state.workIndex(mon, state.tags, idx + 1));
+				const newW = this._state.workIndex(mon, state.tags, idx + 1);
+				this._state.focus(newW.handle);
 			});
 			this._addBinding("cycle-prev", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
 				const idx = this._state.workIndexByHandle(state.focused);
-				this._state.focus(this._state.workIndex(mon, state.tags, idx - 1));
+				const win = this._state.workIndex(mon, state.tags, idx - 1);
+				this._state.focus(win.handle);
 			});
 			this._addBinding("zoom", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
-				const idx = this._state.workIndexByHandle(state.focused);
-				if (this._state.workIndexByHandle(state.focused))
-					this._state.focus(this._state.workIndex(mon, state.tags, 0));
-				else
-					this.state.focus(state.beforeZoom);
-				state.beforeZoom = state.focused;
+				const beforeZoom = state.focused;
+				if (this._state.workIndexByHandle(state.focused)) {
+					const win = this._state.workIndex(mon, state.tags, 0);
+					this._state.focus(win.handle);
+				} else this.state.focus(state.beforeZoom);
+				state.beforeZoom = beforeZoom;
 			});
-
 
 			this._addBinding("incrmfact", () => {
 				const mon = global.display.get_current_monitor();
