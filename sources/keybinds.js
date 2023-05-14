@@ -47,6 +47,7 @@ var KeyboardManager = GObject.registerClass(
 			this._addBinding("set-layout-floating", () =>
 				this._switchLayout("floating")
 			);
+			this._addBinding("set-layout-deck", () => this._switchLayout("deck"));
 
 			this._addBinding("cycle-prev", () => {
 				const mon = global.display.get_current_monitor();
@@ -164,6 +165,7 @@ var KeyboardManager = GObject.registerClass(
 			this._removeBinding("set-layout-tiling");
 			this._removeBinding("set-layout-monocle");
 			this._removeBinding("set-layout-floating");
+			this._removeBinding("set-layout-deck");
 
 			this._removeBinding("cycle-next");
 			this._removeBinding("cycle-prev");

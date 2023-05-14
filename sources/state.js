@@ -142,22 +142,22 @@ var StateManager = GObject.registerClass(
 		 * @returns WindowGeometry[]
 		 */
 		render(mon, tags) {
-			const { layout, nmaster, mfact } = this.monitors[mon];
 			const windows = this.windows.filter(
 				(x) => x.monitor === mon && x.tags & tags
 			);
 			log(`${windows.length} windows for monitor ${mon} with tags ${tags}`);
+			return this._layout(this.monitors[mon], windows);
+		}
 
-			// TODO: Implement other layouts
+		_layout({ layout, nmaster, mfact, focused }, windows) {
+			const focusedW = this.windows.find((x) => x.handle === focused);
+
 			switch (layout) {
 				case "monocle":
-					const focused = this.windows.find(
-						(x) => x.handle === this.monitors[mon].focused
-					);
 					return [
 						{
-							...focused,
-							handle: focused.handle,
+							...focusedW,
+							handle: focusedW.handle,
 							maximized: true,
 							minimized: false,
 							x: 0,
@@ -184,8 +184,8 @@ var StateManager = GObject.registerClass(
 								windows.length <= nmaster || nmaster <= 0
 									? 100
 									: i < nmaster
-										? mfact
-										: 100 - mfact,
+									? mfact
+									: 100 - mfact,
 							height: 100 / stackLength,
 						};
 					});
@@ -195,6 +195,23 @@ var StateManager = GObject.registerClass(
 						handle: x.handle,
 						floating: true,
 					}));
+				case "deck":
+					if (windows.length < 2) {
+						return this._layout(
+							{ layout: "tiling", nmaster, mfact, focused },
+							windows
+						);
+					}
+					const deckWindows =
+						windows[0] === focusedW
+							? windows.splice(0, 2)
+							: [windows[0], focusedW];
+					// Raise the window else lower docks can be above
+					deckWindows[1].handle.raise();
+					return this._layout(
+						{ layout: "tiling", nmaster, mfact, focused },
+						deckWindows
+					);
 				default:
 					return [];
 			}

@@ -50,6 +50,10 @@
 			<default><![CDATA[['<Shift><Super>f']]]></default>
 			<summary>Switch to the floating layout</summary>
 		</key>
+		<key type="as" name="set-layout-deck">
+			<default><![CDATA[['<Super>d']]]></default>
+			<summary>Switch to the deck layout</summary>
+		</key>
 
 		<key type="as" name="cycle-next">
 			<default><![CDATA[['<Super>k']]]></default>
