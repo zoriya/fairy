@@ -63,6 +63,12 @@ function fillPreferencesWindow(window) {
 	page.add(general);
 	general.add(
 		_createBool(settings, {
+			title: "Warp cursor",
+			key: "warp-cursor",
+		})
+	);
+	general.add(
+		_createBool(settings, {
 			title: "Show Layout Indicator",
 			key: "show-layout",
 		})

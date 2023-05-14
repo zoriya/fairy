@@ -1,6 +1,7 @@
 "use strict";
 
 const Meta = imports.gi.Meta;
+const Gdk = imports.gi.Gdk;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
 const Main = imports.ui.main;
@@ -19,6 +20,7 @@ var Renderer = GObject.registerClass(
 				size: 10,
 				outerGaps: 20,
 			};
+			this.warpEnabled = true;
 			log("fairy init!");
 		}
 
@@ -34,6 +36,7 @@ var Renderer = GObject.registerClass(
 				size: this._settings.get_uint("gap-size"),
 				outerGaps: this._settings.get_uint("outer-gap-size"),
 			};
+			this.warpEnabled = this._settings.get_boolean("warp-cursor");
 
 			for (const window of global.display.list_all_windows())
 				this.trackWindow(window);
@@ -137,7 +140,7 @@ var Renderer = GObject.registerClass(
 					this._waitForWindow(window, () => {
 						this.trackWindow(window);
 						GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-							this._state.focus(window);
+							this.focus(window);
 							// Do not retrigger this idle.
 							return false;
 						});
@@ -183,6 +186,9 @@ var Renderer = GObject.registerClass(
 					this.gaps.smart = this._settings.get_boolean(key);
 					this.renderAll();
 					break;
+				case "warp-cursor":
+					this.warpEnabled = this._settings.get_boolean(key);
+					break;
 				}
 			});
 		}
@@ -203,7 +209,7 @@ var Renderer = GObject.registerClass(
 					const tags = this._state.monitors[faWindow.monitor].tags;
 					// Since we retrieved the idx, the window as been removed so we don't need to +1.
 					const newWindow = this._state.workIndex(faWindow.monitor, tags, idx);
-					if (newWindow) this._state.focus(newWindow.handle);
+					if (newWindow) this.focus(newWindow.handle);
 
 					this.render(faWindow.monitor);
 				}),
@@ -225,6 +231,40 @@ var Renderer = GObject.registerClass(
 			];
 
 			this._state.newWindow(handle);
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 */
+		focus(handle) {
+			const mon = handle.get_monitor();
+			this._state.monitors[mon].focused = handle;
+			// This was focused without a zoom, removing the old zoom value.
+			this._state.monitors[mon].beforeZoom = null;
+
+			log("focusing window with title", handle.get_title());
+			handle.raise();
+			handle.focus(global.display.get_current_time());
+			handle.activate(global.display.get_current_time());
+			this.warpCursor(handle);
+		}
+
+		/**
+		 * @param {Meta.Window} handle
+		 */
+		warpCursor(handle) {
+			if (!this.warpEnabled) return;
+
+			log("warping");
+			const gdkDisplay = Gdk.DisplayManager.get().get_default_display();
+			if (!gdkDisplay) return;
+			log("Display existing")
+
+			const pointer = gdkDisplay.get_default_seat().get_pointer();
+			const screen = gdkDisplay.get_default_screen();
+			const rect = handle.get_frame_rect();
+			log("Warping to x,y", rect.x, rect.y);
+			pointer.warp(screen, rect.x + rect.width / 2, rect.y + rect.height / 2);
 		}
 
 		setTags(mon, tags) {

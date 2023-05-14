@@ -105,30 +105,6 @@ var StateManager = GObject.registerClass(
 		}
 
 		/**
-		 * @param {Meta.Window} handle
-		 */
-		focus(handle) {
-			const mon = handle.get_monitor();
-			this.monitors[mon].focused = handle;
-			// This was focused without a zoom, removing the old zoom value.
-			this.monitors[mon].beforeZoom = null;
-
-			log("focusing window with title", handle.get_title());
-			handle.raise();
-			handle.focus(global.display.get_current_time());
-			handle.activate(global.display.get_current_time());
-			this.warpCursor(handle);
-		}
-
-		/**
-		 * @param {Meta.Window} handle
-		 */
-		warpCursor(handle) {
-			// TODO: Warp the cursor
-			// TODO: Check if the warp-cursor setting is enabled.
-		}
-
-		/**
 		 * @param {number} mon
 		 * @param {number} tags
 		 * @param {number} idx
@@ -208,8 +184,8 @@ var StateManager = GObject.registerClass(
 								windows.length <= nmaster || nmaster <= 0
 									? 100
 									: i < nmaster
-									? mfact
-									: 100 - mfact,
+										? mfact
+										: 100 - mfact,
 							height: 100 / stackLength,
 						};
 					});
