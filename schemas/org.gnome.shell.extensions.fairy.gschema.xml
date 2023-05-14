@@ -164,6 +164,81 @@
 			<default><![CDATA[['<Super><Ctrl>9']]]></default>
 			<summary>add the current's monitor tag to 9</summary>
 		</key>
-		<!-- TODO: Add fullscreen, monitors and tags key -->
+
+		<key type="as" name="moveto-tag-1">
+			<default><![CDATA[['<Super><Shift>1']]]></default>
+			<summary>Move the selected window to the tag 1</summary>
+		</key>
+		<key type="as" name="moveto-tag-2">
+			<default><![CDATA[['<Super><Shift>2']]]></default>
+			<summary>Move the selected window to the tag 2</summary>
+		</key>
+		<key type="as" name="moveto-tag-3">
+			<default><![CDATA[['<Super><Shift>3']]]></default>
+			<summary>Move the selected window to the tag 3</summary>
+		</key>
+		<key type="as" name="moveto-tag-4">
+			<default><![CDATA[['<Super><Shift>4']]]></default>
+			<summary>Move the selected window to the tag 4</summary>
+		</key>
+		<key type="as" name="moveto-tag-5">
+			<default><![CDATA[['<Super><Shift>5']]]></default>
+			<summary>Move the selected window to the tag 5</summary>
+		</key>
+		<key type="as" name="moveto-tag-6">
+			<default><![CDATA[['<Super><Shift>6']]]></default>
+			<summary>Move the selected window to the tag 6</summary>
+		</key>
+		<key type="as" name="moveto-tag-7">
+			<default><![CDATA[['<Super><Shift>7']]]></default>
+			<summary>Move the selected window to the tag 7</summary>
+		</key>
+		<key type="as" name="moveto-tag-8">
+			<default><![CDATA[['<Super><Shift>8']]]></default>
+			<summary>Move the selected window to the tag 8</summary>
+		</key>
+		<key type="as" name="moveto-tag-9">
+			<default><![CDATA[['<Super><Shift>9']]]></default>
+			<summary>Move the selected window to the tag 9</summary>
+		</key>
+
+		<key type="as" name="addto-tag-1">
+			<default><![CDATA[['<Super><Ctrl><Shift>1']]]></default>
+			<summary>Add the selected window to the tag 1</summary>
+		</key>
+		<key type="as" name="addto-tag-2">
+			<default><![CDATA[['<Super><Ctrl><Shift>2']]]></default>
+			<summary>Add the selected window to the tag 2</summary>
+		</key>
+		<key type="as" name="addto-tag-3">
+			<default><![CDATA[['<Super><Ctrl><Shift>3']]]></default>
+			<summary>Add the selected window to the tag 3</summary>
+		</key>
+		<key type="as" name="addto-tag-4">
+			<default><![CDATA[['<Super><Ctrl><Shift>4']]]></default>
+			<summary>Add the selected window to the tag 4</summary>
+		</key>
+		<key type="as" name="addto-tag-5">
+			<default><![CDATA[['<Super><Ctrl><Shift>5']]]></default>
+			<summary>Add the selected window to the tag 5</summary>
+		</key>
+		<key type="as" name="addto-tag-6">
+			<default><![CDATA[['<Super><Ctrl><Shift>6']]]></default>
+			<summary>Add the selected window to the tag 6</summary>
+		</key>
+		<key type="as" name="addto-tag-7">
+			<default><![CDATA[['<Super><Ctrl><Shift>7']]]></default>
+			<summary>Add the selected window to the tag 7</summary>
+		</key>
+		<key type="as" name="addto-tag-8">
+			<default><![CDATA[['<Super><Ctrl><Shift>8']]]></default>
+			<summary>Add the selected window to the tag 8</summary>
+		</key>
+		<key type="as" name="addto-tag-9">
+			<default><![CDATA[['<Super><Ctrl><Shift>9']]]></default>
+			<summary>Add the selected window to the tag 9</summary>
+		</key>
+
+		<!-- TODO: Add fullscreen, monitors -->
 	</schema>
 </schemalist>

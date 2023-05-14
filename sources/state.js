@@ -4,7 +4,6 @@ const GObject = imports.gi.GObject;
 const GLib = imports.gi.GLib;
 const Mainloop = imports.mainloop;
 
-
 var StateManager = GObject.registerClass(
 	class StateManager extends GObject.Object {
 		_init() {
@@ -146,8 +145,8 @@ var StateManager = GObject.registerClass(
 			if (newIdx < 0) newIdx = windows.length + newIdx;
 			newIdx %= windows.length;
 
-			const gIdx = this.windows.findIndex(x => x === windows[idx]);
-			const gNewIdx = this.windows.findIndex(x => x === windows[newIdx]);
+			const gIdx = this.windows.findIndex((x) => x === windows[idx]);
+			const gNewIdx = this.windows.findIndex((x) => x === windows[newIdx]);
 
 			const tmp = this.windows[gIdx];
 			this.windows[gIdx] = this.windows[gNewIdx];
@@ -180,9 +179,13 @@ var StateManager = GObject.registerClass(
 			// TODO: Implement other layouts
 			switch (layout) {
 				case "monocle":
+					const focused = this.windows.find(
+						(x) => x.handle === this.monitors[mon].focused
+					);
 					return [
 						{
-							handle: this.monitors[mon].focused,
+							...focused,
+							handle: focused.hanlde,
 							maximized: true,
 							minimized: false,
 							x: 0,
@@ -199,6 +202,7 @@ var StateManager = GObject.registerClass(
 								: windows.length - nmaster;
 						const stackIndex = i < nmaster ? i : i - nmaster;
 						return {
+							...x,
 							handle: x.handle,
 							maximized: false,
 							minimized: false,
@@ -215,6 +219,7 @@ var StateManager = GObject.registerClass(
 					});
 				case "floating":
 					return windows.map((x) => ({
+						...x,
 						handle: x.handle,
 						floating: true,
 					}));

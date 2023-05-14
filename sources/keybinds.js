@@ -53,15 +53,10 @@ var KeyboardManager = GObject.registerClass(
 				const state = this._state.monitors[mon];
 				const idx = this._state.workIndexByHandle(state.focused);
 				const newW = this._state.workIndex(mon, state.tags, idx + 1);
-				this._state.focus(newW.handle);
+				if (newW && newW.handle !== state.focused)
+					this._state.focus(newW.handle);
 			});
-			this._addBinding("cycle-next", () => {
-				const mon = global.display.get_current_monitor();
-				const state = this._state.monitors[mon];
-				const idx = this._state.workIndexByHandle(state.focused);
-				const win = this._state.workIndex(mon, state.tags, idx - 1);
-				this._state.focus(win.handle);
-			});
+			this._addBinding("cycle-next", () => this._focusNext());
 
 			this._addBinding("incrmfact", () => {
 				const mon = global.display.get_current_monitor();
@@ -114,14 +109,14 @@ var KeyboardManager = GObject.registerClass(
 				this._renderer.render(mon);
 			});
 
-			for (const tagNbr = 1; tagNbr < 10; tagNbr++) {
+			for (let tagNbr = 0; tagNbr < 9; tagNbr++) {
 				const tag = 0b1 << tagNbr;
 
-				this._addBinding(`set-tag-${tagNbr}`, () => {
+				this._addBinding(`set-tag-${tagNbr + 1}`, () => {
 					const mon = global.display.get_current_monitor();
 					this._renderer.setTags(mon, tag);
 				});
-				this._addBinding(`add-tag-${tagNbr}`, () => {
+				this._addBinding(`add-tag-${tagNbr + 1}`, () => {
 					const mon = global.display.get_current_monitor();
 					const currTags = this._state.monitors[mon].tags;
 					// Add the tag to the monitor but if the tag is already present, remove it
@@ -133,12 +128,29 @@ var KeyboardManager = GObject.registerClass(
 							: currTags | tag
 					);
 				});
+				this._addBinding(`moveto-tag-${tagNbr + 1}`, () => {
+					const mon = global.display.get_current_monitor();
+					const handle = this._state.monitors[mon].focused;
+					const window = this._state.windows.find((x) => x.handle === handle);
+					this._focusNext();
+					window.tags = tag;
+					window.handle.change_workspace_by_index(tagNbr, false);
+					this._renderer.renderAll();
+				});
+				this._addBinding(`addto-tag-${tagNbr + 1}`, () => {
+					const mon = global.display.get_current_monitor();
+					const handle = this._state.monitors[mon].focused;
+					const window = this._state.windows.find((x) => x.handle === handle);
+					if (window.tags & tag) window.tags &= ~tag;
+					else window.tags |= tag;
+					this._renderer.renderAll();
+				});
 			}
 			this._addBinding("set-tag-all", () => {
 				const mon = global.display.get_current_monitor();
 
 				const takkenTags = 0;
-				for (const i = 0; i < this._state.monitors.length; i++)
+				for (let i = 0; i < this._state.monitors.length; i++)
 					takkenTags |= this._state.monitors[i];
 
 				this._state.monitors[mon].tags |= ~takkenTags;
@@ -163,11 +175,14 @@ var KeyboardManager = GObject.registerClass(
 			this._removeBinding("swap-prev");
 			this._removeBinding("zoom");
 
-			for (const i = 1; i < 10; i++) {
+			for (let i = 1; i < 10; i++) {
 				this._removeBinding(`set-tag-${i}`);
 				this._removeBinding(`add-tag-${i}`);
+				this._removeBinding(`moveto-tag-${i}`);
+				this._removeBinding(`addto-tag-${i}`);
 			}
 			this._removeBinding("set-tag-all");
+			this._removeBinding("moveto-tag-all");
 		}
 
 		_switchLayout(mode) {
@@ -178,6 +193,14 @@ var KeyboardManager = GObject.registerClass(
 			else state.layout = mode;
 			state.oldLayout = currentLayout;
 			this._renderer.render(mon);
+		}
+
+		_focusNext() {
+			const mon = global.display.get_current_monitor();
+			const state = this._state.monitors[mon];
+			const idx = this._state.workIndexByHandle(state.focused);
+			const win = this._state.workIndex(mon, state.tags, idx - 1);
+			if (win && win.handle !== state.focused) this._state.focus(win.handle);
 		}
 	}
 );

@@ -141,11 +141,11 @@ var Renderer = GObject.registerClass(
 					log("Switch to tags", tags);
 					if (Meta.prefs_get_workspaces_only_on_primary()) {
 						const primaryMon = global.display.get_primary_monitor();
-						this.setTag(primaryMon, tags);
+						this.setTags(primaryMon, tags);
 					} else {
 						for (let i = 0; i < this._state.monitors.length; i++) {
 							this._state.monitors[i].tags = tags;
-							this.render(i, tags);
+							this.render(i);
 						}
 					}
 				}),
@@ -153,13 +153,13 @@ var Renderer = GObject.registerClass(
 		}
 
 		/**
-		 * @param {Meta.Window} window
+		 * @param {Meta.Window} handle
 		 */
-		trackWindow(window) {
-			if (!this._isValidWindow(window)) return;
+		trackWindow(handle) {
+			if (!this._isValidWindow(handle)) return;
 			// Add window signals
-			window._signals = [
-				window.connect("unmanaging", (handle) => {
+			handle._signals = [
+				handle.connect("unmanaging", (handle) => {
 					handle._isInvalid = true;
 					const idx = this._state.workIndexByHandle(handle);
 					const faWindow = this._state.popByHandle(handle);
@@ -170,29 +170,34 @@ var Renderer = GObject.registerClass(
 					const newWindow = this._state.workIndex(faWindow.monitor, tags, idx);
 					if (newWindow) this._state.focus(newWindow.handle);
 
-					this.render(faWindow.monitor, tags);
+					this.render(faWindow.monitor);
 				}),
-				window.connect("workspace-changed", (window) => {
-					if (!this._isValidWindow(window)) return;
-					const [oldW, newW] = this._state.updateByHandle(window);
-					if (oldW) this.render(oldW.monitor, oldW.tags);
-					if (newW) this.render(newW.monitor, newW.tags);
+				handle.connect("workspace-changed", (handle) => {
+					log("Workspace changed for window");
+					if (handle._ignoreWorkspaceChange) {
+						handle._ignoreWorkspaceChange = false;
+						return;
+					}
+					if (!this._isValidWindow(handle)) return;
+					const [oldW, newW] = this._state.updateByHandle(handle);
+					if (oldW) this.render(oldW.monitor);
+					if (newW) this.render(newW.monitor);
 				}),
-				window.connect("focus", (window) => {
-					if (!this._isValidWindow(window)) return;
-					this._state.monitors[window.get_monitor()].focused = window;
+				handle.connect("focus", (handle) => {
+					if (!this._isValidWindow(handle)) return;
+					this._state.monitors[handle.get_monitor()].focused = handle;
 				}),
 			];
 
-			this._state.newWindow(window);
+			this._state.newWindow(handle);
 		}
 
-		setTag(mon, tags) {
+		setTags(mon, tags) {
 			const currTags = this._state.monitors[mon].tags;
 			this._state.monitors[mon].tags = tags;
 			this._setGWorkspaceIfNeeded(mon);
 
-			for (const i = 0; i < this._state.monitors.length; i++) {
+			for (let i = 0; i < this._state.monitors.length; i++) {
 				if (this._state.monitors[i] & tags && mon !== i) {
 					// Remove the selected tag from other monitors.
 					// If the other monitor had only this tag, swap monitor's tags instead.
@@ -213,7 +218,8 @@ var Renderer = GObject.registerClass(
 			const tag = (tags & ~(tags - 1));
 			if (tags !== tag) return;
 			// Retrieve the gnome workspace for the tag (inverse of 0b1 << tag)
-			const workspace = Math.log2(tag) + 1;
+			const workspace = Math.log2(tag);
+			console.log("Switching to", tags, tag, workspace)
 
 			global.display
 				.get_workspace_manager()
@@ -224,7 +230,7 @@ var Renderer = GObject.registerClass(
 		renderAll() {
 			const monN = global.display.get_n_monitors();
 			for (let mon = 0; mon < monN; mon++) {
-				this.render(mon, this._state.monitors[mon].tags);
+				this.render(mon);
 			}
 		}
 
@@ -235,10 +241,9 @@ var Renderer = GObject.registerClass(
 
 		/**
 		 * @param {number} mon
-		 * @param {number?} tags
 		 */
-		render(mon, tags) {
-			if (!tags) tags = this._state.monitors[mon].tags;
+		render(mon) {
+			const tags = this._state.monitors[mon].tags;
 
 			// We don't care which workspace it is, we just want the geometry
 			// for the current monitor without the panel.
@@ -246,10 +251,21 @@ var Renderer = GObject.registerClass(
 				.get_workspace_manager()
 				.get_active_workspace()
 				.get_work_area_for_monitor(mon);
+			const workIdx = global.display
+				.get_workspace_manager()
+				.get_active_workspace_index();
 
 			for (const window of this._state.render(mon, tags)) {
 				if (window.handle.get_monitor() !== mon)
 					window.handle.move_to_monitor(mon);
+				// if (!(window.tags & 0b1 << workIdx) || window.currentWorkspace !== workIdx) {
+				if (window.handle.get_workspace().index() !== workIdx) {
+					// The window is visible because another tag as been bringed
+					// so we need to ask gnome to move windows (temporarly to the current workspace)
+					log("Invalid workspace", window.tags, 0b1 << workIdx);
+					window.handle._ignoreWorkspaceChange = true;
+					window.handle.change_workspace_by_index(workIdx, true);
+				}
 
 				if (window.floating) continue;
 
