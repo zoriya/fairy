@@ -5,7 +5,7 @@ const { Adw, Gio, Gtk } = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
-function init() { }
+function init() {}
 
 function _createKeybind(settings, keybind) {
 	// TODO: Set the title to the gsettings's title.
@@ -16,7 +16,39 @@ function _createKeybind(settings, keybind) {
 	// settings.bind(keybind, listener, );
 	row.add_suffix(listener);
 	row.activable_widget = listener;
-	return row
+	return row;
+}
+
+function _createBool(settings, { title, key }) {
+	const row = new Adw.ActionRow({ title: title });
+
+	const toggle = new Gtk.Switch({
+		active: settings.get_boolean(key),
+		valign: Gtk.Align.CENTER,
+	});
+	settings.bind(key, toggle, "active", Gio.SettingsBindFlags.DEFAULT);
+
+	row.add_suffix(toggle);
+	row.activatable_widget = toggle;
+	return row;
+}
+
+function _createUint(settings, { title, key }) {
+	const row = new Adw.ActionRow({ title: title });
+
+	const input = new Gtk.SpinButton({
+		adjustment: new Gtk.Adjustment({
+			lower: 0,
+			upper: 100,
+			step_increment: 1,
+			value: settings.get_uint(key),
+		}),
+	});
+	settings.bind(key, input, "value", Gio.SettingsBindFlags.DEFAULT);
+
+	row.add_suffix(input);
+	row.activatable_widget = input;
+	return row;
 }
 
 function fillPreferencesWindow(window) {
@@ -26,25 +58,36 @@ function fillPreferencesWindow(window) {
 
 	const page = new Adw.PreferencesPage();
 	page.set_title("General");
-	const group = new Adw.PreferencesGroup();
-	page.add(group);
 
-	const row = new Adw.ActionRow({ title: "Show Layout Indicator" });
-	group.add(row);
-
-	const toggle = new Gtk.Switch({
-		active: settings.get_boolean("show-layout"),
-		valign: Gtk.Align.CENTER,
-	});
-	settings.bind(
-		"show-layout",
-		toggle,
-		"active",
-		Gio.SettingsBindFlags.DEFAULT
+	const general = new Adw.PreferencesGroup();
+	page.add(general);
+	general.add(
+		_createBool(settings, {
+			title: "Show Layout Indicator",
+			key: "show-layout",
+		})
 	);
 
-	row.add_suffix(toggle);
-	row.activatable_widget = toggle;
+	const gaps = new Adw.PreferencesGroup();
+	page.add(gaps);
+	gaps.add(
+		_createUint(settings, {
+			title: "Gap size",
+			key: "gap-size",
+		})
+	);
+	gaps.add(
+		_createUint(settings, {
+			title: "Outer gap size",
+			key: "outer-gap-size",
+		})
+	);
+	gaps.add(
+		_createBool(settings, {
+			title: "Smart gaps",
+			key: "smart-gaps",
+		})
+	);
 
 	const keybinds = new Adw.PreferencesPage();
 	keybinds.set_title("Keybinds");

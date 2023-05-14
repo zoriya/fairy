@@ -11,7 +11,8 @@ const Indicator = Me.imports.sources.indicator;
 class Extension {
 	constructor() {
 		this._state = new State.StateManager();
-		this._renderer = new Renderer.Renderer(this._state);
+		this._settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.fairy");
+		this._renderer = new Renderer.Renderer(this._state, this._settings);
 		this._keybinds = new Keybinds.KeyboardManager(this._state, this._renderer);
 		this._indicator = new Indicator.Indicator(this._state, this._renderer);
 	}

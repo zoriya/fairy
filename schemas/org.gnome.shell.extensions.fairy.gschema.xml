@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
 	<schema id="org.gnome.shell.extensions.fairy" path="/org/gnome/shell/extensions/fairy/">
-		<!-- Behavior things -->
-		<key type="s" name="default-layout">
-			<default>'tiling'</default>
-			<summary>Available: floating, tiling, monocle</summary>
-		</key>
-
 		<!-- Visual things -->
 		<key type="b" name="show-layout">
 			<default>true</default>
@@ -24,8 +18,13 @@
 		</key>
 
 		<key type="u" name="gap-size">
-			<default>4</default>
+			<default>10</default>
 			<summary> The size of the gap between windows in the workarea</summary>
+		</key>
+
+		<key type="u" name="outer-gap-size">
+			<default>20</default>
+			<summary> The size of the gap between windows and the edge of the monitor</summary>
 		</key>
 
 		<key type="b" name="smart-gaps">
