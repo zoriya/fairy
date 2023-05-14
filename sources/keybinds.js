@@ -53,8 +53,10 @@ var KeyboardManager = GObject.registerClass(
 				const state = this._state.monitors[mon];
 				const idx = this._state.workIndexByHandle(state.focused);
 				const newW = this._state.workIndex(mon, state.tags, idx + 1);
-				if (newW && newW.handle !== state.focused)
+				if (newW && newW.handle !== state.focused) {
 					this._state.focus(newW.handle);
+					this._renderer.render(mon);
+				}
 			});
 			this._addBinding("cycle-next", () => this._focusNext());
 
@@ -200,7 +202,10 @@ var KeyboardManager = GObject.registerClass(
 			const state = this._state.monitors[mon];
 			const idx = this._state.workIndexByHandle(state.focused);
 			const win = this._state.workIndex(mon, state.tags, idx - 1);
-			if (win && win.handle !== state.focused) this._state.focus(win.handle);
+			if (win && win.handle !== state.focused) {
+				this._state.focus(win.handle);
+				this._renderer.render(mon);
+			}
 		}
 	}
 );

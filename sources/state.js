@@ -108,20 +108,16 @@ var StateManager = GObject.registerClass(
 		 * @param {Meta.Window} handle
 		 */
 		focus(handle) {
-			GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-				const mon = handle.get_monitor();
-				this.monitors[mon].focused = handle;
-				// This was focused without a zoom, removing the old zoom value.
-				this.monitors[mon].beforeZoom = null;
+			const mon = handle.get_monitor();
+			this.monitors[mon].focused = handle;
+			// This was focused without a zoom, removing the old zoom value.
+			this.monitors[mon].beforeZoom = null;
 
-				log("focusing window with title", handle.get_title());
-				handle.raise();
-				handle.focus(global.display.get_current_time());
-				handle.activate(global.display.get_current_time());
-				this.warpCursor(handle);
-				// Do not retrigger this idle.
-				return false;
-			});
+			log("focusing window with title", handle.get_title());
+			handle.raise();
+			handle.focus(global.display.get_current_time());
+			handle.activate(global.display.get_current_time());
+			this.warpCursor(handle);
 		}
 
 		/**
@@ -185,7 +181,7 @@ var StateManager = GObject.registerClass(
 					return [
 						{
 							...focused,
-							handle: focused.hanlde,
+							handle: focused.handle,
 							maximized: true,
 							minimized: false,
 							x: 0,
