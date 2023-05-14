@@ -87,6 +87,83 @@
 			<summary>Swap the current window with the master</summary>
 		</key>
 
+		<key type="as" name="set-tag-1">
+			<default><![CDATA[['<Super>1']]]></default>
+			<summary>Set the current's monitor tag to 1</summary>
+		</key>
+		<key type="as" name="set-tag-2">
+			<default><![CDATA[['<Super>2']]]></default>
+			<summary>Set the current's monitor tag to 2</summary>
+		</key>
+		<key type="as" name="set-tag-3">
+			<default><![CDATA[['<Super>3']]]></default>
+			<summary>Set the current's monitor tag to 3</summary>
+		</key>
+		<key type="as" name="set-tag-4">
+			<default><![CDATA[['<Super>4']]]></default>
+			<summary>Set the current's monitor tag to 4</summary>
+		</key>
+		<key type="as" name="set-tag-5">
+			<default><![CDATA[['<Super>5']]]></default>
+			<summary>Set the current's monitor tag to 5</summary>
+		</key>
+		<key type="as" name="set-tag-6">
+			<default><![CDATA[['<Super>6']]]></default>
+			<summary>Set the current's monitor tag to 6</summary>
+		</key>
+		<key type="as" name="set-tag-7">
+			<default><![CDATA[['<Super>7']]]></default>
+			<summary>Set the current's monitor tag to 7</summary>
+		</key>
+		<key type="as" name="set-tag-8">
+			<default><![CDATA[['<Super>8']]]></default>
+			<summary>Set the current's monitor tag to 8</summary>
+		</key>
+		<key type="as" name="set-tag-9">
+			<default><![CDATA[['<Super>9']]]></default>
+			<summary>Set the current's monitor tag to 9</summary>
+		</key>
+		<key type="as" name="set-tag-all">
+			<default><![CDATA[['<Super>0']]]></default>
+			<summary>Activate all the tags available on the current monitor</summary>
+		</key>
+
+		<key type="as" name="add-tag-1">
+			<default><![CDATA[['<Super><Ctrl>1']]]></default>
+			<summary>add the current's monitor tag to 1</summary>
+		</key>
+		<key type="as" name="add-tag-2">
+			<default><![CDATA[['<Super><Ctrl>2']]]></default>
+			<summary>add the current's monitor tag to 2</summary>
+		</key>
+		<key type="as" name="add-tag-3">
+			<default><![CDATA[['<Super><Ctrl>3']]]></default>
+			<summary>add the current's monitor tag to 3</summary>
+		</key>
+		<key type="as" name="add-tag-4">
+			<default><![CDATA[['<Super><Ctrl>4']]]></default>
+			<summary>add the current's monitor tag to 4</summary>
+		</key>
+		<key type="as" name="add-tag-5">
+			<default><![CDATA[['<Super><Ctrl>5']]]></default>
+			<summary>add the current's monitor tag to 5</summary>
+		</key>
+		<key type="as" name="add-tag-6">
+			<default><![CDATA[['<Super><Ctrl>6']]]></default>
+			<summary>add the current's monitor tag to 6</summary>
+		</key>
+		<key type="as" name="add-tag-7">
+			<default><![CDATA[['<Super><Ctrl>7']]]></default>
+			<summary>add the current's monitor tag to 7</summary>
+		</key>
+		<key type="as" name="add-tag-8">
+			<default><![CDATA[['<Super><Ctrl>8']]]></default>
+			<summary>add the current's monitor tag to 8</summary>
+		</key>
+		<key type="as" name="add-tag-9">
+			<default><![CDATA[['<Super><Ctrl>9']]]></default>
+			<summary>add the current's monitor tag to 9</summary>
+		</key>
 		<!-- TODO: Add fullscreen, monitors and tags key -->
 	</schema>
 </schemalist>

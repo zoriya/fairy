@@ -141,8 +141,7 @@ var Renderer = GObject.registerClass(
 					log("Switch to tags", tags);
 					if (Meta.prefs_get_workspaces_only_on_primary()) {
 						const primaryMon = global.display.get_primary_monitor();
-						this._state.monitors[primaryMon].tags = tags;
-						this.render(primaryMon, tags);
+						this.setTag(primaryMon, tags);
 					} else {
 						for (let i = 0; i < this._state.monitors.length; i++) {
 							this._state.monitors[i].tags = tags;
@@ -188,13 +187,44 @@ var Renderer = GObject.registerClass(
 			this._state.newWindow(window);
 		}
 
+		setTag(mon, tags) {
+			const currTags = this._state.monitors[mon].tags;
+			this._state.monitors[mon].tags = tags;
+			this._setGWorkspaceIfNeeded(mon);
+
+			for (const i = 0; i < this._state.monitors.length; i++) {
+				if (this._state.monitors[i] & tags && mon !== i) {
+					// Remove the selected tag from other monitors.
+					// If the other monitor had only this tag, swap monitor's tags instead.
+					this._state.monitors[i] = this._state.monitors[i] & ~tags || currTags;
+					this._setGWorkspaceIfNeeded(i);
+					this.render(i);
+				}
+			}
+
+			this.render(mon);
+		}
+
+		_setGWorkspaceIfNeeded(mon) {
+			if (mon !== global.display.get_primary_monitor()) return;
+
+			const tags = this._state.monitors[mon].tags;
+			// This retrieve the lower tag present in the tags set.
+			const tag = (tags & ~(tags - 1));
+			if (tags !== tag) return;
+			// Retrieve the gnome workspace for the tag (inverse of 0b1 << tag)
+			const workspace = Math.log2(tag) + 1;
+
+			global.display
+				.get_workspace_manager()
+				.get_workspace_by_index(workspace)
+				.activate(global.display.get_current_time());
+		}
+
 		renderAll() {
 			const monN = global.display.get_n_monitors();
-			// TODO: Support different tags on different monitors.
-			const tags =
-				global.display.get_workspace_manager().get_active_workspace_index() + 1;
 			for (let mon = 0; mon < monN; mon++) {
-				this.render(mon, tags);
+				this.render(mon, this._state.monitors[mon].tags);
 			}
 		}
 

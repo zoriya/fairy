@@ -39,16 +39,6 @@ var KeyboardManager = GObject.registerClass(
 			Main.wm.removeKeybinding(key);
 		}
 
-		_switchLayout(mode) {
-			const mon = global.display.get_current_monitor();
-			const state = this._state.monitors[mon];
-			const currentLayout = state.layout;
-			if (state.layout === mode) state.layout = state.oldLayout;
-			else state.layout = mode;
-			state.oldLayout = currentLayout;
-			this._renderer.render(mon);
-		}
-
 		enable() {
 			this._addBinding("set-layout-tiling", () => this._switchLayout("tiling"));
 			this._addBinding("set-layout-monocle", () =>
@@ -118,11 +108,40 @@ var KeyboardManager = GObject.registerClass(
 				const idx = this._state.workIndexByHandle(state.focused);
 
 				// if the master is not focused
-				if (idx !== 0)
-					this._state.swap(mon, state.tags, idx, 0)
-				else
-					this._state.swap(mon, state.tags, idx, state.beforeZoom);
+				if (idx !== 0) this._state.swap(mon, state.tags, idx, 0);
+				else this._state.swap(mon, state.tags, idx, state.beforeZoom);
 				state.beforeZoom = idx;
+				this._renderer.render(mon);
+			});
+
+			for (const tagNbr = 1; tagNbr < 10; tagNbr++) {
+				const tag = 0b1 << tagNbr;
+
+				this._addBinding(`set-tag-${tagNbr}`, () => {
+					const mon = global.display.get_current_monitor();
+					this._renderer.setTags(mon, tag);
+				});
+				this._addBinding(`add-tag-${tagNbr}`, () => {
+					const mon = global.display.get_current_monitor();
+					const currTags = this._state.monitors[mon].tags;
+					// Add the tag to the monitor but if the tag is already present, remove it
+					// Do not allow 0 tags to be present.
+					this._renderer.setTags(
+						mon,
+						currTags & tag && currTags !== tag
+							? currTags & ~tag
+							: currTags | tag
+					);
+				});
+			}
+			this._addBinding("set-tag-all", () => {
+				const mon = global.display.get_current_monitor();
+
+				const takkenTags = 0;
+				for (const i = 0; i < this._state.monitors.length; i++)
+					takkenTags |= this._state.monitors[i];
+
+				this._state.monitors[mon].tags |= ~takkenTags;
 				this._renderer.render(mon);
 			});
 		}
@@ -143,6 +162,22 @@ var KeyboardManager = GObject.registerClass(
 			this._removeBinding("swap-next");
 			this._removeBinding("swap-prev");
 			this._removeBinding("zoom");
+
+			for (const i = 1; i < 10; i++) {
+				this._removeBinding(`set-tag-${i}`);
+				this._removeBinding(`add-tag-${i}`);
+			}
+			this._removeBinding("set-tag-all");
+		}
+
+		_switchLayout(mode) {
+			const mon = global.display.get_current_monitor();
+			const state = this._state.monitors[mon];
+			const currentLayout = state.layout;
+			if (state.layout === mode) state.layout = state.oldLayout;
+			else state.layout = mode;
+			state.oldLayout = currentLayout;
+			this._renderer.render(mon);
 		}
 	}
 );
