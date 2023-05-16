@@ -139,12 +139,12 @@ var Renderer = GObject.registerClass(
 				global.display.connect("window-created", (_display, window) =>
 					this._waitForWindow(window, () => {
 						this.trackWindow(window);
-						GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+						// GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
 							this.focus(window);
-							// Do not retrigger this idle.
-							return false;
-						});
-						this.renderForWindow(window);
+							this.renderForHandle(window);
+						// 	// Do not retrigger this idle.
+						// 	return false;
+						// });
 					})
 				),
 				// global.display.connect("window-entered-monitor", (_display, monitor, window) => {
@@ -155,8 +155,8 @@ var Renderer = GObject.registerClass(
 				global.workspace_manager.connect("active-workspace-changed", () => {
 					// Convert gnome workspaces to fairy's tags
 					const workspace = global.display
-					.get_workspace_manager()
-					.get_active_workspace_index();
+						.get_workspace_manager()
+						.get_active_workspace_index();
 					const tags = 0b1 << workspace;
 					log("Switch to tags", tags);
 					if (Meta.prefs_get_workspaces_only_on_primary()) {
@@ -227,6 +227,7 @@ var Renderer = GObject.registerClass(
 				handle.connect("focus", (handle) => {
 					if (!this._isValidWindow(handle)) return;
 					this._state.monitors[handle.get_monitor()].focused = handle;
+					this.renderForHandle(handle);
 				}),
 			];
 
@@ -309,8 +310,8 @@ var Renderer = GObject.registerClass(
 			}
 		}
 
-		renderForWindow(window) {
-			const mon = window.get_monitor();
+		renderForHandle(handle) {
+			const mon = handle.get_monitor();
 			this.render(mon);
 		}
 

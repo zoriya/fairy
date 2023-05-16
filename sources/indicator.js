@@ -18,6 +18,13 @@ var Indicator = GObject.registerClass(
 			super._init();
 			this._state = state;
 			this._renderer = renderer;
+
+			this._layoutIcons = {
+				tiling: Gio.icon_new_for_string(`${Me.path}/icons/tiling.svg`),
+				monocle: Gio.icon_new_for_string(`${Me.path}/icons/monocle.svg`),
+				floating: Gio.icon_new_for_string(`${Me.path}/icons/floating.svg`),
+				deck: Gio.icon_new_for_string(`${Me.path}/icons/deck.svg`),
+			};
 		}
 
 		enable() {
@@ -25,13 +32,13 @@ var Indicator = GObject.registerClass(
 				"org.gnome.shell.extensions.fairy"
 			);
 
-			const indicatorName =  `${Me.metadata.name} Indicator`;
+			const indicatorName = `${Me.metadata.name} Indicator`;
 			this._layoutIndicator = new PanelMenu.Button(0.0, indicatorName);
-			const icon = new St.Icon({
-				gicon: new Gio.ThemedIcon({ name: "face-laugh-symbolic" }),
+			this._icon = new St.Icon({
+				gicon: this._layoutIcons.tiling,
 				style_class: "system-status-icon",
 			});
-			this._layoutIndicator.add_child(icon);
+			this._layoutIndicator.add_child(this._icon);
 
 			this.settings.bind(
 				"show-layout",
@@ -45,8 +52,14 @@ var Indicator = GObject.registerClass(
 		disable() {
 			this._layoutIndicator.destroy();
 			this._layoutIndicator = null;
+			this._icon = null;
 
 			this.settings = null;
+		}
+
+		update() {
+			const primaryMon = global.display.get_primary_monitor();
+			this._icon.gicon = this._layoutIcons[this._state.monitors[primaryMon].layout];
 		}
 	}
 );

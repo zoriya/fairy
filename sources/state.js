@@ -150,10 +150,12 @@ var StateManager = GObject.registerClass(
 		}
 
 		_layout({ layout, nmaster, mfact, focused }, windows) {
-			const focusedW = this.windows.find((x) => x.handle === focused);
+			const focusedW = windows.find((x) => x.handle === focused)
+				?? windows[0];
 
 			switch (layout) {
 				case "monocle":
+					if (!focusedW) return [];
 					return [
 						{
 							...focusedW,
