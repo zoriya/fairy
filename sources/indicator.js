@@ -29,6 +29,7 @@ var Indicator = GObject.registerClass(
 
 		endInit(ext) {
 			this._state = ext._state;
+			this._settings = ext._settings;
 			this._renderer = ext._renderer;
 			this._keybinds = ext._keybinds;
 		}
@@ -41,13 +42,9 @@ var Indicator = GObject.registerClass(
 		}
 
 		enable() {
-			this.settings = ExtensionUtils.getSettings(
-				"org.gnome.shell.extensions.fairy"
-			);
-
 			const tagIndicatorName = `${Me.metadata.name} Tag Indicator`;
 			this._tagIndicator = new PanelMenu.Button(0.0, tagIndicatorName);
-			this.settings.bind(
+			this._settings.bind(
 				"show-tags",
 				this._tagIndicator,
 				"visible",
@@ -88,7 +85,7 @@ var Indicator = GObject.registerClass(
 			this._layoutIndicator.menu.addMenuItem(this._nmasterPanelItem);
 			this._layoutIndicator.menu.addMenuItem(this._mfactPanelItem);
 
-			this.settings.bind(
+			this._settings.bind(
 				"show-layout",
 				this._layoutIndicator,
 				"visible",
@@ -107,33 +104,37 @@ var Indicator = GObject.registerClass(
 				1,
 				"left"
 			);
+			this._destroyed = false;
 			this.update();
+
+			this._settings.connect("changed", () => this.update());
 		}
 
 		disable() {
-			this._tagIndicator.destroy_all_children();
+			this._destroyed = true;
 			this._tagIndicator.destroy();
 			this._tagIndicator = null;
 
 			this._layoutPanelItems = {};
 			this._nmasterPanelItem = null;
 			this._mfactPanelItem = nulll;
-			for (const item of this._layoutIndicator.menu) item.destroy();
 			this._layoutIndicator.destroy();
 			this._layoutIndicator = null;
 			this._icon.destroy();
 			this._icon = null;
 
-			this.settings = null;
+			this._settings.disconnect("changed");
 		}
 
 		update() {
+			if (this._destroyed) return;
+
 			const mon = global.display.get_primary_monitor();
 			const state = this._state.monitors[mon];
 
 			// TODO: Retrieve the following two from the settings.
-			const tagName = [];
-			const activeColor = "#ff0000";
+			const tagName = this._settings.get_strv("tag-names");
+			const activeColor = this._settings.get_string("active-tags-color");
 
 			this._tagIndicator.destroy_all_children();
 			let tagBox = new St.BoxLayout();

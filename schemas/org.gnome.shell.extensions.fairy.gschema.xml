@@ -15,6 +15,14 @@
 			<default>true</default>
 			<summary>Show the tags icon on the panel</summary>
 		</key>
+		<key type="s" name="active-tags-color">
+			<default>'#ff0000'</default>
+			<summary>The color of the active tags on the panel</summary>
+		</key>
+		<key type="as" name="tag-names">
+			<default>[]</default>
+			<summary>The name of the tags</summary>
+		</key>
 
 		<key type="b" name="focus-border">
 			<default>true</default>
