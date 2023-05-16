@@ -8,11 +8,14 @@ const ExtensionUtils = imports.misc.extensionUtils;
 
 var KeyboardManager = GObject.registerClass(
 	class KeyboardManager extends GObject.Object {
-		_init(state, renderer, indicator) {
+		_init(ext) {
 			super._init();
-			this._state = state;
-			this._renderer = renderer;
-			this._indicator = indicator;
+		}
+
+		endInit(ext) {
+			this._state = ext._state;
+			this._renderer = ext._renderer;
+			this._indicator = ext._indicator;
 		}
 
 		/**
@@ -41,14 +44,14 @@ var KeyboardManager = GObject.registerClass(
 		}
 
 		enable() {
-			this._addBinding("set-layout-tiling", () => this._switchLayout("tiling"));
+			this._addBinding("set-layout-tiling", () => this.switchLayout("tiling"));
 			this._addBinding("set-layout-monocle", () =>
-				this._switchLayout("monocle")
+				this.switchLayout("monocle")
 			);
 			this._addBinding("set-layout-floating", () =>
-				this._switchLayout("floating")
+				this.switchLayout("floating")
 			);
-			this._addBinding("set-layout-deck", () => this._switchLayout("deck"));
+			this._addBinding("set-layout-deck", () => this.switchLayout("deck"));
 
 			this._addBinding("cycle-prev", () => {
 				const mon = global.display.get_current_monitor();
@@ -190,7 +193,7 @@ var KeyboardManager = GObject.registerClass(
 			this._removeBinding("moveto-tag-all");
 		}
 
-		_switchLayout(mode) {
+		switchLayout(mode) {
 			const mon = global.display.get_current_monitor();
 			const state = this._state.monitors[mon];
 			const currentLayout = state.layout;

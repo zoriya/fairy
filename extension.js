@@ -14,8 +14,10 @@ class Extension {
 		this._settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.fairy");
 
 		this._renderer = new Renderer.Renderer(this._state, this._settings);
-		this._indicator = new Indicator.Indicator(this._state, this._renderer);
-		this._keybinds = new Keybinds.KeyboardManager(this._state, this._renderer, this._indicator);
+		this._keybinds = new Keybinds.KeyboardManager();
+		this._indicator = new Indicator.Indicator(this._state, this._renderer, this._keybinds);
+
+		this._keybinds.endInit(this);
 	}
 
 	enable() {
