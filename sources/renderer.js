@@ -11,10 +11,11 @@ const Me = ExtensionUtils.getCurrentExtension();
 
 var Renderer = GObject.registerClass(
 	class Renderer extends GObject.Object {
-		_init(state, settings) {
+		_init(state, settings, indicator) {
 			super._init();
 			this._state = state;
 			this._settings = settings;
+			this._indicator = indicator;
 			this.gaps = {
 				smart: true,
 				size: 10,
@@ -139,12 +140,9 @@ var Renderer = GObject.registerClass(
 				global.display.connect("window-created", (_display, window) =>
 					this._waitForWindow(window, () => {
 						this.trackWindow(window);
-						// GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
-							this.focus(window);
-							this.renderForHandle(window);
-						// 	// Do not retrigger this idle.
-						// 	return false;
-						// });
+						this.focus(window);
+						this.renderForHandle(window);
+						this._indicator.update();
 					})
 				),
 				// global.display.connect("window-entered-monitor", (_display, monitor, window) => {
@@ -168,6 +166,7 @@ var Renderer = GObject.registerClass(
 							this.render(i);
 						}
 					}
+					this._indicator.update();
 				}),
 			];
 
@@ -212,6 +211,7 @@ var Renderer = GObject.registerClass(
 					if (newWindow) this.focus(newWindow.handle);
 
 					this.render(faWindow.monitor);
+					this._indicator.update();
 				}),
 				handle.connect("workspace-changed", (handle) => {
 					log("Workspace changed for window");
@@ -223,6 +223,7 @@ var Renderer = GObject.registerClass(
 					const [oldW, newW] = this._state.updateByHandle(handle);
 					if (oldW) this.render(oldW.monitor);
 					if (newW) this.render(newW.monitor);
+					this._indicator.update();
 				}),
 				handle.connect("focus", (handle) => {
 					if (!this._isValidWindow(handle)) return;

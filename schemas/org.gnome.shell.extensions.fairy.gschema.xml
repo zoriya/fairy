@@ -11,6 +11,10 @@
 			<default>true</default>
 			<summary>Show the layout icon on the panel</summary>
 		</key>
+		<key type="b" name="show-tags">
+			<default>true</default>
+			<summary>Show the tags icon on the panel</summary>
+		</key>
 
 		<key type="b" name="focus-border">
 			<default>true</default>

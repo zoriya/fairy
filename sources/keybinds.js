@@ -8,14 +8,11 @@ const ExtensionUtils = imports.misc.extensionUtils;
 
 var KeyboardManager = GObject.registerClass(
 	class KeyboardManager extends GObject.Object {
-		_init(ext) {
+		_init(state, renderer, indicator) {
 			super._init();
-		}
-
-		endInit(ext) {
-			this._state = ext._state;
-			this._renderer = ext._renderer;
-			this._indicator = ext._indicator;
+			this._state = state;
+			this._renderer = renderer;
+			this._indicator = indicator;
 		}
 
 		/**
