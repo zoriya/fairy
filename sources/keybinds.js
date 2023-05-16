@@ -70,24 +70,28 @@ var KeyboardManager = GObject.registerClass(
 				const state = this._state.monitors[mon];
 				state.mfact = Math.min(95, state.mfact + 5);
 				this._renderer.render(mon);
+				this._indicator.update(mon);
 			});
 			this._addBinding("decmfact", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
 				state.mfact = Math.max(5, state.mfact - 5);
 				this._renderer.render(mon);
+				this._indicator.update(mon);
 			});
 
 			this._addBinding("incrnmaster", () => {
 				const mon = global.display.get_current_monitor();
 				this._state.monitors[mon].nmaster += 1;
 				this._renderer.render(mon);
+				this._indicator.update(mon);
 			});
 			this._addBinding("decnmaster", () => {
 				const mon = global.display.get_current_monitor();
 				if (this._state.monitors[mon].nmaster > 0)
 					this._state.monitors[mon].nmaster -= 1;
 				this._renderer.render(mon);
+				this._indicator.update(mon);
 			});
 
 			this._addBinding("swap-prev", () => {

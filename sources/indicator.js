@@ -49,7 +49,6 @@ var Indicator = GObject.registerClass(
 			});
 			this._layoutIndicator.add_child(this._icon);
 
-			const mon = global.display.get_primary_monitor();
 			this._layoutPanelItems = {
 				tiling: this._createSelectableItem("Tiling", () =>
 					this._keybinds.switchLayout("tiling")
@@ -64,10 +63,15 @@ var Indicator = GObject.registerClass(
 					this._keybinds.switchLayout("deck")
 				),
 			};
+			this._nmasterPanelItem = new PopupMenu.PopupMenuItem("nmaster", {});
+			this._mfactPanelItem = new PopupMenu.PopupMenuItem("mfact", {});
 			this._layoutIndicator.menu.addMenuItem(this._layoutPanelItems.tiling);
 			this._layoutIndicator.menu.addMenuItem(this._layoutPanelItems.monocle);
 			this._layoutIndicator.menu.addMenuItem(this._layoutPanelItems.floating);
 			this._layoutIndicator.menu.addMenuItem(this._layoutPanelItems.deck);
+			this._layoutIndicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+			this._layoutIndicator.menu.addMenuItem(this._nmasterPanelItem);
+			this._layoutIndicator.menu.addMenuItem(this._mfactPanelItem);
 
 			this.settings.bind(
 				"show-layout",
@@ -81,6 +85,11 @@ var Indicator = GObject.registerClass(
 		}
 
 		disable() {
+			this._layoutPanelItems = {};
+			this._nmasterPanelItem = null;
+			this._mfactPanelItem = nulll
+			for (const item of this._layoutIndicator.menu)
+				item.destroy();
 			this._layoutIndicator.destroy();
 			this._layoutIndicator = null;
 			this._icon.destroy();
@@ -91,15 +100,17 @@ var Indicator = GObject.registerClass(
 
 		update() {
 			const primaryMon = global.display.get_primary_monitor();
-			const layout = this._state.monitors[primaryMon].layout;
-			log(layout);
-			this._icon.gicon = this._layoutIcons[layout];
+			const state = this._state.monitors[primaryMon];
+			this._icon.gicon = this._layoutIcons[state.layout];
 
 			for (const [key, value] of Object.entries(this._layoutPanelItems)) {
 				value.setOrnament(
-					key === layout ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE
+					key === state.layout ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE
 				);
 			}
+
+			this._nmasterPanelItem.label.text = `nmaster: ${state.nmaster}`;
+			this._mfactPanelItem.label.text = `mfact: ${state.mfact}%`;
 		}
 	}
 );
