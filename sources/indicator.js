@@ -117,10 +117,9 @@ var Indicator = GObject.registerClass(
 
 			this._layoutPanelItems = {};
 			this._nmasterPanelItem = null;
-			this._mfactPanelItem = nulll;
+			this._mfactPanelItem = null;
 			this._layoutIndicator.destroy();
 			this._layoutIndicator = null;
-			this._icon.destroy();
 			this._icon = null;
 
 			this._settings.disconnect("changed");

@@ -18,7 +18,7 @@ var StateManager = GObject.registerClass(
 				 * @type {number | null} window's index that was focused just before a zoom
 				 */
 				beforeZoom: null,
-				tags: 1,
+				tags: 0,
 				layout: "tiling",
 				oldLayout: "monocle",
 				nmaster: 1,

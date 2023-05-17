@@ -69,7 +69,7 @@ var KeyboardManager = GObject.registerClass(
 				this._renderer.render(mon);
 				this._indicator.update(mon);
 			});
-			this._addBinding("decmfact", () => {
+			this._addBinding("decrmfact", () => {
 				const mon = global.display.get_current_monitor();
 				const state = this._state.monitors[mon];
 				state.mfact = Math.max(5, state.mfact - 5);
@@ -83,7 +83,7 @@ var KeyboardManager = GObject.registerClass(
 				this._renderer.render(mon);
 				this._indicator.update(mon);
 			});
-			this._addBinding("decnmaster", () => {
+			this._addBinding("decrnmaster", () => {
 				const mon = global.display.get_current_monitor();
 				if (this._state.monitors[mon].nmaster > 0)
 					this._state.monitors[mon].nmaster -= 1;
@@ -140,29 +140,34 @@ var KeyboardManager = GObject.registerClass(
 					const mon = global.display.get_current_monitor();
 					const handle = this._state.monitors[mon].focused;
 					const window = this._state.windows.find((x) => x.handle === handle);
+					if (!window) return;
 					this._focusNext();
 					window.tags = tag;
 					window.handle.change_workspace_by_index(tagNbr, false);
 					this._renderer.renderAll();
+					this._indicator.update(mon);
 				});
 				this._addBinding(`addto-tag-${tagNbr + 1}`, () => {
 					const mon = global.display.get_current_monitor();
 					const handle = this._state.monitors[mon].focused;
 					const window = this._state.windows.find((x) => x.handle === handle);
+					if (!window) return;
 					if (window.tags & tag) window.tags &= ~tag;
 					else window.tags |= tag;
 					this._renderer.renderAll();
+					this._indicator.update(mon);
 				});
 			}
 			this._addBinding("set-tag-all", () => {
 				const mon = global.display.get_current_monitor();
 
-				const takkenTags = 0;
+				let takkenTags = 0;
 				for (let i = 0; i < this._state.monitors.length; i++)
-					takkenTags |= this._state.monitors[i];
+					takkenTags |= this._state.monitors[i].tags;
 
 				this._state.monitors[mon].tags |= ~takkenTags;
 				this._renderer.render(mon);
+				this._indicator.update(mon);
 			});
 		}
 
@@ -191,7 +196,6 @@ var KeyboardManager = GObject.registerClass(
 				this._removeBinding(`addto-tag-${i}`);
 			}
 			this._removeBinding("set-tag-all");
-			this._removeBinding("moveto-tag-all");
 		}
 
 		switchLayout(mode) {
@@ -212,8 +216,10 @@ var KeyboardManager = GObject.registerClass(
 			const win = this._state.workIndex(mon, state.tags, idx - 1);
 			if (win && win.handle !== state.focused) {
 				this._renderer.focus(win.handle);
-				this._renderer.render(mon);
+			} else {
+				state.focused = null;
 			}
+			this._renderer.render(mon);
 		}
 	}
 );

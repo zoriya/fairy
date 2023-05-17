@@ -285,6 +285,7 @@ var Renderer = GObject.registerClass(
 			}
 
 			this.render(mon);
+			this._indicator.update(mon);
 		}
 
 		_setGWorkspaceIfNeeded(mon) {

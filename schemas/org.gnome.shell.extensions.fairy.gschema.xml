@@ -80,7 +80,7 @@
 			<default><![CDATA[['<Super>l']]]></default>
 			<summary>Increase the master area</summary>
 		</key>
-		<key type="as" name="decmfact">
+		<key type="as" name="decrmfact">
 			<default><![CDATA[['<Super>h']]]></default>
 			<summary>Decrease the master area</summary>
 		</key>
@@ -89,7 +89,7 @@
 			<default><![CDATA[['<Super>i']]]></default>
 			<summary>Increase the number of windows in the master area</summary>
 		</key>
-		<key type="as" name="decnmaster">
+		<key type="as" name="decrnmaster">
 			<default><![CDATA[['<Super>o']]]></default>
 			<summary>Decrease the number of windows in the master area</summary>
 		</key>
