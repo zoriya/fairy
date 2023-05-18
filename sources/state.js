@@ -25,6 +25,9 @@ var StateManager = GObject.registerClass(
 				mfact: 55,
 			}));
 
+			// The currently focused monitor.
+			this.focusedMon = 0;
+
 			/**
 			 * @type {FairyWindow[]}
 			 */

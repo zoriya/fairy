@@ -4,18 +4,21 @@ const Meta = imports.gi.Meta;
 const Gdk = imports.gi.Gdk;
 const GLib = imports.gi.GLib;
 const GObject = imports.gi.GObject;
+
 const Main = imports.ui.main;
 const Mainloop = imports.mainloop;
+
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 
 var Renderer = GObject.registerClass(
 	class Renderer extends GObject.Object {
-		_init(state, settings, indicator) {
+		_init(state, settings, indicator, border) {
 			super._init();
 			this._state = state;
 			this._settings = settings;
 			this._indicator = indicator;
+			this._border = border;
 			this.gaps = {
 				smart: true,
 				size: 10,
@@ -238,6 +241,10 @@ var Renderer = GObject.registerClass(
 					this._state.monitors[handle.get_monitor()].focused = handle;
 					this.renderForHandle(handle);
 				}),
+				handle.connect("position-changed", () => this._border.updateBorders()),
+				handle.connect("size-changed", () => this._border.updateBorders()),
+				handle.connect("raised", () => this._border.updateBorders()),
+				handle.connect("shown", () => this._border.updateBorders()),
 			];
 
 			this._state.newWindow(handle);
@@ -257,6 +264,7 @@ var Renderer = GObject.registerClass(
 			handle.focus(global.display.get_current_time());
 			handle.activate(global.display.get_current_time());
 			this.warpCursor(handle);
+			this._border.updateBorders();
 		}
 
 		/**
@@ -369,6 +377,7 @@ var Renderer = GObject.registerClass(
 				) {
 					if (window.maximized) {
 						window.handle.maximize(Meta.MaximizeFlags.BOTH);
+						window.handle.raise();
 						// Do not resize if maximizing to keep the overview tiled.
 						continue;
 					} else window.handle.unmaximize(Meta.MaximizeFlags.BOTH);
@@ -402,6 +411,7 @@ var Renderer = GObject.registerClass(
 					monGeo.y + size.y,
 				);
 			}
+			this._border.updateBorders();
 		}
 
 		addGaps(window, monGeo) {

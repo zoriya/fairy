@@ -1,1 +1,6 @@
-/* Add your custom extension styling here */
+.fairy-border {
+	border-width: 3px;
+	border-color: rgba(236, 94, 94, 1);
+	border-style: solid;
+	/* border-radius: 14px; */
+}

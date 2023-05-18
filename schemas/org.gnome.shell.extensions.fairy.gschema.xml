@@ -90,7 +90,7 @@
 			<summary>Increase the number of windows in the master area</summary>
 		</key>
 		<key type="as" name="decrnmaster">
-			<default><![CDATA[['<Super>o']]]></default>
+			<default><![CDATA[['<Super>u']]]></default>
 			<summary>Decrease the number of windows in the master area</summary>
 		</key>
 
