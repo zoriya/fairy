@@ -173,21 +173,21 @@ var Renderer = GObject.registerClass(
 			this._settings.connect("changed", (_, key) => {
 				log("Proprety changed", key);
 				switch (key) {
-				case "gap-size":
-					this.gaps.size = this._settings.get_uint(key);
-					this.renderAll();
-					break;
-				case "outer-gap-size":
-					this.gaps.outerGaps = this._settings.get_uint(key);
-					this.renderAll();
-					break;
-				case "smart-gaps":
-					this.gaps.smart = this._settings.get_boolean(key);
-					this.renderAll();
-					break;
-				case "warp-cursor":
-					this.warpEnabled = this._settings.get_boolean(key);
-					break;
+					case "gap-size":
+						this.gaps.size = this._settings.get_uint(key);
+						this.renderAll();
+						break;
+					case "outer-gap-size":
+						this.gaps.outerGaps = this._settings.get_uint(key);
+						this.renderAll();
+						break;
+					case "smart-gaps":
+						this.gaps.smart = this._settings.get_boolean(key);
+						this.renderAll();
+						break;
+					case "warp-cursor":
+						this.warpEnabled = this._settings.get_boolean(key);
+						break;
 				}
 			});
 		}
@@ -205,10 +205,16 @@ var Renderer = GObject.registerClass(
 					const faWindow = this._state.popByHandle(handle);
 					if (!faWindow) return;
 
-					if (this._state.monitors[faWindow.monitor].focused === faWindow.handle) {
+					if (
+						this._state.monitors[faWindow.monitor].focused === faWindow.handle
+					) {
 						const tags = this._state.monitors[faWindow.monitor].tags;
 						// Since we retrieved the idx, the window as been removed so we don't need to +1.
-						const newWindow = this._state.workIndex(faWindow.monitor, tags, idx);
+						const newWindow = this._state.workIndex(
+							faWindow.monitor,
+							tags,
+							idx
+						);
 						if (newWindow) this.focus(newWindow.handle);
 					}
 
@@ -259,16 +265,19 @@ var Renderer = GObject.registerClass(
 		warpCursor(handle) {
 			if (!this.warpEnabled) return;
 
-			log("warping");
 			const gdkDisplay = Gdk.DisplayManager.get().get_default_display();
 			if (!gdkDisplay) return;
-			log("Display existing")
-
-			const pointer = gdkDisplay.get_default_seat().get_pointer();
-			const screen = gdkDisplay.get_default_screen();
 			const rect = handle.get_frame_rect();
 			log("Warping to x,y", rect.x, rect.y);
-			pointer.warp(screen, rect.x + rect.width / 2, rect.y + rect.height / 2);
+			gdkDisplay
+				.get_default_seat()
+				.get_pointer()
+				.warp(
+					gdkDisplay.get_default_screen(),
+					rect.x + rect.width / 2,
+					rect.y + rect.height / 2
+				);
+			log("warped");
 		}
 
 		setTags(mon, tags) {
@@ -355,7 +364,7 @@ var Renderer = GObject.registerClass(
 				}
 				if (
 					window.handle["maximized-vertically"] !=
-						window.handle["maximized-horizontally"] ||
+					window.handle["maximized-horizontally"] ||
 					window.handle["maximized-vertically"] != window.maximized
 				) {
 					if (window.maximized) {
@@ -372,7 +381,10 @@ var Renderer = GObject.registerClass(
 					height: (window.height * monGeo.height) / 100,
 				};
 
-				if (this._state.monitors[mon].layout !== "monocle" && (windows.length > 1 || !this.gaps.smart))
+				if (
+					this._state.monitors[mon].layout !== "monocle" &&
+					(windows.length > 1 || !this.gaps.smart)
+				)
 					size = this.addGaps(size, monGeo);
 
 				window.handle.move_resize_frame(
