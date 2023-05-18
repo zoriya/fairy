@@ -394,6 +394,13 @@ var Renderer = GObject.registerClass(
 					size.width,
 					size.height
 				);
+				// Doing a simple move after because gnome ignore move_resize calls if the available space is less
+				// then what the application requests.
+				window.handle.move_frame(
+					true,
+					monGeo.x + size.x,
+					monGeo.y + size.y,
+				);
 			}
 		}
 

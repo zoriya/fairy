@@ -28,7 +28,7 @@ var KeyboardManager = GObject.registerClass(
 				key,
 				settings,
 				Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
-				Shell.ActionMode.NORMAL,
+				Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
 				action
 			);
 		}
