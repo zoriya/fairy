@@ -205,10 +205,12 @@ var Renderer = GObject.registerClass(
 					const faWindow = this._state.popByHandle(handle);
 					if (!faWindow) return;
 
-					const tags = this._state.monitors[faWindow.monitor].tags;
-					// Since we retrieved the idx, the window as been removed so we don't need to +1.
-					const newWindow = this._state.workIndex(faWindow.monitor, tags, idx);
-					if (newWindow) this.focus(newWindow.handle);
+					if (this._state.monitors[faWindow.monitor].focused === faWindow.handle) {
+						const tags = this._state.monitors[faWindow.monitor].tags;
+						// Since we retrieved the idx, the window as been removed so we don't need to +1.
+						const newWindow = this._state.workIndex(faWindow.monitor, tags, idx);
+						if (newWindow) this.focus(newWindow.handle);
+					}
 
 					this.render(faWindow.monitor);
 					this._indicator.update();
