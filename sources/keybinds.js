@@ -57,8 +57,10 @@ var KeyboardManager = GObject.registerClass(
 				const newW = this._state.workIndex(mon, state.tags, idx + 1);
 				if (newW && newW.handle !== state.focused) {
 					this._renderer.focus(newW.handle);
-					this._renderer.render(mon);
+				} else {
+					state.focused = null;
 				}
+				this._renderer.render(mon);
 			});
 			this._addBinding("cycle-next", () => this._focusNext());
 

@@ -166,6 +166,11 @@ var Renderer = GObject.registerClass(
 					} else {
 						for (let i = 0; i < this._state.monitors.length; i++) {
 							this._state.monitors[i].tags = tags;
+							const focusedWindow = this._state.windows.find(
+								(x) => x.handle === this._state.monitors[i].focused
+							);
+							if (!focusedWindow || !(focusedWindow.tags & tags))
+								this._state.monitors[i].focused = null;
 							this.render(i);
 						}
 					}
@@ -219,6 +224,9 @@ var Renderer = GObject.registerClass(
 							idx
 						);
 						if (newWindow) this.focus(newWindow.handle);
+						else {
+							this._state.monitors[faWindow.monitor].focused = null;
+						}
 					}
 
 					this.render(faWindow.monitor);
@@ -290,6 +298,11 @@ var Renderer = GObject.registerClass(
 
 		setTags(mon, tags) {
 			const currTags = this._state.monitors[mon].tags;
+			const focusedWindow = this._state.windows.find(
+				(x) => x.handle === this._state.monitors[mon].focused
+			);
+			if (!focusedWindow || !(focusedWindow.tags & tags))
+				this._state.monitors[mon].focused = null;
 			this._state.monitors[mon].tags = tags;
 			this._setGWorkspaceIfNeeded(mon);
 
@@ -372,7 +385,7 @@ var Renderer = GObject.registerClass(
 				}
 				if (
 					window.handle["maximized-vertically"] !=
-					window.handle["maximized-horizontally"] ||
+						window.handle["maximized-horizontally"] ||
 					window.handle["maximized-vertically"] != window.maximized
 				) {
 					if (window.maximized) {
@@ -405,11 +418,7 @@ var Renderer = GObject.registerClass(
 				);
 				// Doing a simple move after because gnome ignore move_resize calls if the available space is less
 				// then what the application requests.
-				window.handle.move_frame(
-					true,
-					monGeo.x + size.x,
-					monGeo.y + size.y,
-				);
+				window.handle.move_frame(true, monGeo.x + size.x, monGeo.y + size.y);
 			}
 			this._border.updateBorders();
 		}
