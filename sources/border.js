@@ -14,19 +14,42 @@ const Me = ExtensionUtils.getCurrentExtension();
 
 var BorderManager = GObject.registerClass(
 	class BorderManager extends GObject.Object {
-		_init(state) {
+		_init(state, settings) {
 			super._init();
 			this._state = state;
+			this._settings = settings;
 			this._border = null;
 			this._renderCount = 0;
+			this.settings = {
+				show: true,
+				color: "#ff0000",
+			};
 		}
 
 		enable() {
-			this._border = new St.Bin({ style_class: "fairy-border" });
+			this.settings = {
+				show: this._settings.get_boolean("focus-border"),
+				color: this._settings.get_string("focus-border-color"),
+			};
+
+			this._border = new St.Bin({
+				style: `border-color: ${this.settings.color};`,
+				style_class: "fairy-border",
+			});
 			if (global.window_group) global.window_group.add_child(this._border);
+
+			this._settings.connect("changed", () => {
+				this.settings = {
+					show: this._settings.get_boolean("focus-border"),
+					color: this._settings.get_string("focus-border-color"),
+				};
+				this._border.set_style(`border-color: ${this.settings.color};`);
+				this.updateBorders();
+			});
 		}
 
 		disable() {
+			this._settings.disconnect("changed");
 			this._border.destroy();
 			this._border = null;
 		}
@@ -35,6 +58,8 @@ var BorderManager = GObject.registerClass(
 			// Hide the border during transitions.
 			this._border.hide();
 			this._renderCount++;
+
+			if (!this.settings.show) return;
 
 			const state = this._state.monitors[this._state.focusedMon];
 			const handle = state.focused;
