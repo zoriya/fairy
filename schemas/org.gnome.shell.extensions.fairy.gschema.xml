@@ -6,7 +6,7 @@
 			<summary>Should the cursor warp to newly focused windows</summary>
 		</key>
 		<key type="b" name="single-tagset">
-			<default>false</default>
+			<default>true</default>
 			<summary>Should tag be shared between monitors</summary>
 		</key>
 

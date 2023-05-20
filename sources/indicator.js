@@ -53,11 +53,20 @@ var Indicator = GObject.registerClass(
 
 			const indicatorName = `${Me.metadata.name} Layout Indicator`;
 			this._layoutIndicator = new PanelMenu.Button(0.0, indicatorName);
+			const layoutBox = new St.BoxLayout();
+			this._layoutIndicator.add_child(layoutBox);
 			this._icon = new St.Icon({
 				gicon: this._layoutIcons.tiling,
 				style_class: "system-status-icon",
 			});
-			this._layoutIndicator.add_child(this._icon);
+			layoutBox.add_child(this._icon);
+			this._windowCount = new St.Label({
+				x_align: Clutter.ActorAlign.START,
+				y_align: Clutter.ActorAlign.CENTER,
+				style_class: "system-status-icon",
+				text: "0",
+			});
+			layoutBox.add_child(this._windowCount);
 
 			this._layoutPanelItems = {
 				tiling: this._createSelectableItem("Tiling", () =>
@@ -128,7 +137,8 @@ var Indicator = GObject.registerClass(
 		update() {
 			if (this._destroyed) return;
 
-			const mon = global.display.get_primary_monitor();
+			const mon = this._state.focusedMon;
+			log("Focused mon", mon);
 			const state = this._state.monitors[mon];
 
 			// TODO: Retrieve the following two from the settings.
@@ -142,8 +152,11 @@ var Indicator = GObject.registerClass(
 				const tag = 0b1 << tagNbr;
 				const active = state.tags & tag;
 				const hasWindow =
-					this._state.windows.find((x) => x.monitor == mon && x.tags & tag) !==
-					undefined;
+					this._state.windows.find(
+						this._state.singleTagset
+							? (x) => x.tags & tag
+							: (x) => x.monitor === mon && x.tags & tag
+					) !== undefined;
 				if (!active && !hasWindow) continue;
 				const style = "width: 30px;";
 				const tagBtn = new St.Button({
@@ -162,6 +175,16 @@ var Indicator = GObject.registerClass(
 			}
 
 			this._icon.gicon = this._layoutIcons[state.layout];
+			const windowCount = this._state.windows.filter(
+				this._state.singleTagset
+					? (x) => x.tags & state.tags
+					: (x) => x.monitor == state.monitor && x.tags & state.tag
+			).length;
+			this._windowCount.set_text(windowCount.toString());
+			if (state.layout === "monocle" || state.layout === "deck")
+				this._windowCount.show();
+			else
+				this._windowCount.hide();
 			for (const [key, value] of Object.entries(this._layoutPanelItems)) {
 				value.setOrnament(
 					key === state.layout

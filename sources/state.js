@@ -43,7 +43,6 @@ var StateManager = GObject.registerClass(
 		_windowFromHandle(handle) {
 			const mon = handle.get_monitor();
 			const tags = this.monitors[mon].tags;
-			log("New window", handle.get_title(), "Monitor", mon, "tags", tags);
 			return {
 				handle,
 				monitor: mon,
@@ -59,13 +58,13 @@ var StateManager = GObject.registerClass(
 		newWindow(handle) {
 			const window = this._windowFromHandle(handle);
 			this.monitors[window.monitor].beforeZoom = null;
-			log("New window on tag", window.tags, "monitor", window.monitor);
+			log("New window", window.handle.get_title(), "on tag", window.tags, "monitor", window.monitor);
 			this.windows.unshift(window);
 		}
 
 		/**
 		 * @param {Meta.Window} handle
-		 * @returns {[Fairyit worked, but recent update caused it to go bad, i literally updated today and it broke, now i need to see what package broke itWindow, FairyWindow]} [old, new]
+		 * @returns {[FairyWindow, FairyWindow]} [old, new]
 		 */
 		updateByHandle(handle) {
 			const i = this.windows.findIndex((x) => x.handle === handle);

@@ -266,8 +266,11 @@ var Renderer = GObject.registerClass(
 				}),
 				handle.connect("focus", (handle) => {
 					if (!this._isValidWindow(handle)) return;
-					this._state.monitors[handle.get_monitor()].focused = handle;
+					const mon = handle.get_monitor();
+					this._state.monitors[mon].focused = handle;
+					this._state.focusedMon = mon;
 					this.renderForHandle(handle);
+					this._indicator.update()
 				}),
 				handle.connect("position-changed", () => this._border.updateBorders()),
 				handle.connect("size-changed", () => this._border.updateBorders()),
@@ -351,7 +354,7 @@ var Renderer = GObject.registerClass(
 			if (tags !== tag) return;
 			// Retrieve the gnome workspace for the tag (inverse of 0b1 << tag)
 			const workspace = Math.log2(tag);
-			console.log("Switching to", tags, tag, workspace);
+			log("Switching to", tags, tag, workspace);
 
 			global.display
 				.get_workspace_manager()
@@ -431,6 +434,10 @@ var Renderer = GObject.registerClass(
 				)
 					size = this.addGaps(size, monGeo);
 
+				// Doing a simple move after because gnome ignore move_resize calls if the available space is less
+				// then what the application requests.
+				window.handle.move_frame(true, monGeo.x + size.x, monGeo.y + size.y);
+
 				window.handle.move_resize_frame(
 					true,
 					monGeo.x + size.x,
@@ -438,9 +445,6 @@ var Renderer = GObject.registerClass(
 					size.width,
 					size.height
 				);
-				// Doing a simple move after because gnome ignore move_resize calls if the available space is less
-				// then what the application requests.
-				window.handle.move_frame(true, monGeo.x + size.x, monGeo.y + size.y);
 			}
 			this._border.updateBorders();
 		}
