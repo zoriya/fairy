@@ -38,25 +38,13 @@ var StateManager = GObject.registerClass(
 
 		/**
 		 * @param {Meta.Window} handle
-		 * @returns {FairyWindow}
-		 */
-		_windowFromHandle(handle) {
-			const mon = handle.get_monitor();
-			const tags = this.monitors[mon].tags;
-			return {
-				handle,
-				monitor: mon,
-				tags,
-				// Needed for the popByActor that might get called when the actor is already deleted
-				actor: handle.get_compositor_private(),
-			};
-		}
-
-		/**
-		 * @param {Meta.Window} handle
 		 */
 		newWindow(handle) {
-			const window = this._windowFromHandle(handle);
+			const window = {
+				handle,
+				monitor: handle.get_monitor(),
+				tags: this.monitors[handle.get_monitor()].tags,
+			};
 			this.monitors[window.monitor].beforeZoom = null;
 			log("New window", window.handle.get_title(), "on tag", window.tags, "monitor", window.monitor);
 			this.windows.unshift(window);
@@ -64,12 +52,17 @@ var StateManager = GObject.registerClass(
 
 		/**
 		 * @param {Meta.Window} handle
-		 * @returns {[FairyWindow, FairyWindow]} [old, new]
+		 * @returns {[FairyWindow, FairyWindow] | [null, null]} [old, new]
 		 */
 		updateByHandle(handle) {
 			const i = this.windows.findIndex((x) => x.handle === handle);
+			if (i === -1) return [null, null];
 			const old = { ...this.windows[i] };
-			this.windows[i] = this._windowFromHandle(handle);
+			this.windows[i] = {
+				handle,
+				monitor: handle.get_monitor(),
+				tags: 0b1 << handle.get_workspace().index(),
+			};
 			return [old, this.windows[i]];
 		}
 

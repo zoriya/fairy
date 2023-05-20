@@ -143,11 +143,12 @@ var KeyboardManager = GObject.registerClass(
 					const handle = this._state.monitors[mon].focused;
 					const window = this._state.windows.find((x) => x.handle === handle);
 					if (!window) return;
-					this._focusNext();
+					log("Sending", handle.get_title(), "to tagNbr", tagNbr);
+					this._focusNext(true);
 					window.tags = tag;
 					window.handle.change_workspace_by_index(tagNbr, false);
 					this._renderer.renderAll();
-					this._indicator.update(mon);
+					this._indicator.update();
 				});
 				this._addBinding(`addto-tag-${tagNbr + 1}`, () => {
 					const mon = global.display.get_current_monitor();
@@ -157,7 +158,7 @@ var KeyboardManager = GObject.registerClass(
 					if (window.tags & tag) window.tags &= ~tag;
 					else window.tags |= tag;
 					this._renderer.renderAll();
-					this._indicator.update(mon);
+					this._indicator.update();
 				});
 			}
 			this._addBinding("set-tag-all", () => {
@@ -216,7 +217,7 @@ var KeyboardManager = GObject.registerClass(
 			this._indicator.update(mon);
 		}
 
-		_focusNext() {
+		_focusNext(skipRender) {
 			const mon = global.display.get_current_monitor();
 			const state = this._state.monitors[mon];
 			const idx = this._state.workIndexByHandle(state.focused);
@@ -226,7 +227,8 @@ var KeyboardManager = GObject.registerClass(
 			} else {
 				state.focused = null;
 			}
-			this._renderer.render(mon);
+			if (!skipRender)
+				this._renderer.render(mon);
 		}
 	}
 );

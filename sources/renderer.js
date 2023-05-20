@@ -156,7 +156,9 @@ var Renderer = GObject.registerClass(
 				),
 				global.display.connect("window-entered-monitor", (_display, _monitor, handle) => {
 					const [oldW, newW] = this._state.updateByHandle(handle);
-					log("Monitor changed for window", oldW.handle.get_title(), oldW.monitor, "to", newW.monitor);
+					// Update by handle return null if the window is not tracked yet (new window).
+					if (!oldW) return;
+					log("Monitor changed for window", newW.handle.get_title(), oldW.monitor, "to", newW.monitor);
 					if (oldW) this.render(oldW.monitor);
 					if (newW) this.render(newW.monitor);
 					this._indicator.update();
@@ -259,7 +261,8 @@ var Renderer = GObject.registerClass(
 					}
 					if (!this._isValidWindow(handle)) return;
 					const [oldW, newW] = this._state.updateByHandle(handle);
-					log("Workspace changed for window", oldW.handle.get_title(), oldW.tags, "to", newW.tags);
+					if (!oldW) return;
+					log("Workspace changed for window", newW.handle.get_title(), oldW.tags, "to", newW.tags);
 					if (oldW) this.render(oldW.monitor);
 					if (newW) this.render(newW.monitor);
 					this._indicator.update();
@@ -331,10 +334,10 @@ var Renderer = GObject.registerClass(
 
 			if (this._state.singleTagset) {
 				for (let i = 0; i < global.display.get_n_monitors(); i++) {
-					if (this._state.monitors[i] & tags && mon !== i) {
+					if (this._state.monitors[i].tags & tags && mon !== i) {
 						// Remove the selected tag from other monitors.
 						// If the other monitor had only this tag, swap monitor's tags instead.
-						this._state.monitors[i] = this._state.monitors[i] & ~tags || currTags;
+						this._state.monitors[i].tags = this._state.monitors[i].tags & ~tags || currTags;
 						this._setGWorkspaceIfNeeded(i);
 						this.render(i);
 					}
