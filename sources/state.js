@@ -54,14 +54,14 @@ var StateManager = GObject.registerClass(
 		 * @param {Meta.Window} handle
 		 * @returns {[FairyWindow, FairyWindow] | [null, null]} [old, new]
 		 */
-		updateByHandle(handle) {
+		updateByHandle(handle, tags) {
 			const i = this.windows.findIndex((x) => x.handle === handle);
 			if (i === -1) return [null, null];
 			const old = { ...this.windows[i] };
 			this.windows[i] = {
 				handle,
 				monitor: handle.get_monitor(),
-				tags: 0b1 << handle.get_workspace().index(),
+				tags,
 			};
 			return [old, this.windows[i]];
 		}
@@ -125,6 +125,18 @@ var StateManager = GObject.registerClass(
 			const tmp = this.windows[gIdx];
 			this.windows[gIdx] = this.windows[gNewIdx];
 			this.windows[gNewIdx] = tmp;
+		}
+
+		findAvailableTag() {
+			let takenTags = 0;
+			for (let i = 0; i < global.display.get_n_monitor(); i++) {
+				takenTags |= this.monitors[i].tags;
+			}
+			for (let i = 0; i < 9; i++) {
+				if (takenTags & (0b1 << i) === 0)
+					return 0b1 << i;
+			}
+			return 0;
 		}
 
 		/**
