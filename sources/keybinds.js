@@ -164,8 +164,13 @@ var KeyboardManager = GObject.registerClass(
 				const mon = global.display.get_current_monitor();
 
 				let takkenTags = 0;
-				for (let i = 0; i < this._state.monitors.length; i++)
-					takkenTags |= this._state.monitors[i].tags;
+				if (this._state.sharedTagset) {
+					for (let i = 0; i < global.display.get_n_monitors(); i++)
+						takkenTags |= this._state.monitors[i].tags;
+				}
+				else {
+					takkenTags = ~0;
+				}
 
 				this._state.monitors[mon].tags |= ~takkenTags;
 				this._renderer.render(mon);

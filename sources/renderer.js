@@ -41,6 +41,7 @@ var Renderer = GObject.registerClass(
 				outerGaps: this._settings.get_uint("outer-gap-size"),
 			};
 			this.warpEnabled = this._settings.get_boolean("warp-cursor");
+			this._state.singleTagset = this._settings.get_boolean("single-tagset");
 
 			for (const window of global.display.list_all_windows())
 				this.trackWindow(window);
@@ -50,9 +51,14 @@ var Renderer = GObject.registerClass(
 				.get_active_workspace_index();
 			const tags = 0b1 << workspace;
 			if (Meta.prefs_get_workspaces_only_on_primary()) {
-				this._state.monitors[global.display.get_primary_monitor()].tags = tags;
+				const primaryMon = global.display.get_primary_monitor();
+				this._state.monitors[primaryMon].tags = tags;
+				for (let i = 0; i < global.display.get_n_monitors(); i++) {
+					if (primaryMon === i) continue;
+					this._state.monitors[i].tags = 0b1 << i;
+				}
 			} else {
-				for (let i = 0; i < this._state.monitors.length; i++)
+				for (let i = 0; i < global.display.get_n_monitors(); i++)
 					this._state.monitors[i].tags = tags;
 			}
 
@@ -148,9 +154,13 @@ var Renderer = GObject.registerClass(
 						this._indicator.update();
 					})
 				),
-				// global.display.connect("window-entered-monitor", (_display, monitor, window) => {
-				//
-				// }),
+				global.display.connect("window-entered-monitor", (_display, _monitor, handle) => {
+					const [oldW, newW] = this._state.updateByHandle(handle);
+					log("Monitor changed for window", oldW.handle.get_title(), oldW.monitor, "to", newW.monitor);
+					if (oldW) this.render(oldW.monitor);
+					if (newW) this.render(newW.monitor);
+					this._indicator.update();
+				}),
 			];
 			this._workspaceSignals = [
 				global.workspace_manager.connect("active-workspace-changed", () => {
@@ -164,7 +174,7 @@ var Renderer = GObject.registerClass(
 						const primaryMon = global.display.get_primary_monitor();
 						this.setTags(primaryMon, tags);
 					} else {
-						for (let i = 0; i < this._state.monitors.length; i++) {
+						for (let i = 0; i < global.display.get_n_monitors(); i++) {
 							this._state.monitors[i].tags = tags;
 							const focusedWindow = this._state.windows.find(
 								(x) => x.handle === this._state.monitors[i].focused
@@ -195,6 +205,16 @@ var Renderer = GObject.registerClass(
 						break;
 					case "warp-cursor":
 						this.warpEnabled = this._settings.get_boolean(key);
+						break;
+					case "single-tagset":
+						this._state.singleTagset = this._settings.get_boolean(key);
+						const primaryMon = global.display.get_primary_monitor();
+						for (let i = 0; i < global.display.get_n_monitors(); i++) {
+							if (i === primaryMon) continue;
+							this._state.monitors[i].tags = 0b1 << i;
+						}
+						this.renderAll();
+						this._indicator.update();
 						break;
 				}
 			});
@@ -233,13 +253,13 @@ var Renderer = GObject.registerClass(
 					this._indicator.update();
 				}),
 				handle.connect("workspace-changed", (handle) => {
-					log("Workspace changed for window");
 					if (handle._ignoreWorkspaceChange) {
 						handle._ignoreWorkspaceChange = false;
 						return;
 					}
 					if (!this._isValidWindow(handle)) return;
 					const [oldW, newW] = this._state.updateByHandle(handle);
+					log("Workspace changed for window", oldW.handle.get_title(), oldW.tags, "to", newW.tags);
 					if (oldW) this.render(oldW.monitor);
 					if (newW) this.render(newW.monitor);
 					this._indicator.update();
@@ -306,13 +326,15 @@ var Renderer = GObject.registerClass(
 			this._state.monitors[mon].tags = tags;
 			this._setGWorkspaceIfNeeded(mon);
 
-			for (let i = 0; i < this._state.monitors.length; i++) {
-				if (this._state.monitors[i] & tags && mon !== i) {
-					// Remove the selected tag from other monitors.
-					// If the other monitor had only this tag, swap monitor's tags instead.
-					this._state.monitors[i] = this._state.monitors[i] & ~tags || currTags;
-					this._setGWorkspaceIfNeeded(i);
-					this.render(i);
+			if (this._state.singleTagset) {
+				for (let i = 0; i < global.display.get_n_monitors(); i++) {
+					if (this._state.monitors[i] & tags && mon !== i) {
+						// Remove the selected tag from other monitors.
+						// If the other monitor had only this tag, swap monitor's tags instead.
+						this._state.monitors[i] = this._state.monitors[i] & ~tags || currTags;
+						this._setGWorkspaceIfNeeded(i);
+						this.render(i);
+					}
 				}
 			}
 

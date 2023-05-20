@@ -25,6 +25,7 @@ var Indicator = GObject.registerClass(
 				floating: Gio.icon_new_for_string(`${Me.path}/icons/floating.svg`),
 				deck: Gio.icon_new_for_string(`${Me.path}/icons/deck.svg`),
 			};
+			this._destroyed = true;
 		}
 
 		endInit(ext) {
@@ -33,7 +34,6 @@ var Indicator = GObject.registerClass(
 			this._renderer = ext._renderer;
 			this._keybinds = ext._keybinds;
 		}
-
 
 		_createSelectableItem(title, cb) {
 			const menuItem = new PopupMenu.PopupMenuItem(title, {});
@@ -142,7 +142,8 @@ var Indicator = GObject.registerClass(
 				const tag = 0b1 << tagNbr;
 				const active = state.tags & tag;
 				const hasWindow =
-					this._state.windows.find((x) => x.tags & tag) !== undefined;
+					this._state.windows.find((x) => x.monitor == mon && x.tags & tag) !==
+					undefined;
 				if (!active && !hasWindow) continue;
 				const style = "width: 30px;";
 				const tagBtn = new St.Button({

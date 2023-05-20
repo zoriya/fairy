@@ -14,7 +14,7 @@ class Extension {
 		this._state = new State.StateManager();
 		this._settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.fairy");
 
-		this._border = new Border.BorderManager(this._state);
+		this._border = new Border.BorderManager(this._state, this._settings);
 		this._indicator = new Indicator.Indicator(this._state, this._renderer, this._keybinds);
 		this._renderer = new Renderer.Renderer(this._state, this._settings, this._indicator, this._border);
 		this._keybinds = new Keybinds.KeyboardManager(this._state, this._renderer, this._indicator);

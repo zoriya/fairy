@@ -25,6 +25,8 @@ var StateManager = GObject.registerClass(
 				mfact: 55,
 			}));
 
+			this.sharedTagset = false;
+
 			// The currently focused monitor.
 			this.focusedMon = 0;
 
@@ -40,9 +42,8 @@ var StateManager = GObject.registerClass(
 		 */
 		_windowFromHandle(handle) {
 			const mon = handle.get_monitor();
-			const tags = handle.on_all_workspaces
-				? ~0
-				: 0b1 << handle.get_workspace().index();
+			const tags = this.monitors[mon].tags;
+			log("New window", handle.get_title(), "Monitor", mon, "tags", tags);
 			return {
 				handle,
 				monitor: mon,
@@ -58,13 +59,13 @@ var StateManager = GObject.registerClass(
 		newWindow(handle) {
 			const window = this._windowFromHandle(handle);
 			this.monitors[window.monitor].beforeZoom = null;
-			log("New window on tag", window.tags);
+			log("New window on tag", window.tags, "monitor", window.monitor);
 			this.windows.unshift(window);
 		}
 
 		/**
 		 * @param {Meta.Window} handle
-		 * @returns {[FairyWindow, FairyWindow]} [old, new]
+		 * @returns {[Fairyit worked, but recent update caused it to go bad, i literally updated today and it broke, now i need to see what package broke itWindow, FairyWindow]} [old, new]
 		 */
 		updateByHandle(handle) {
 			const i = this.windows.findIndex((x) => x.handle === handle);
@@ -89,7 +90,9 @@ var StateManager = GObject.registerClass(
 		 */
 		workIndex(mon, tags, idx) {
 			const windows = this.windows.filter(
-				(x) => x.monitor === mon && x.tags & tags
+				this.singleTagset
+					? (x) => x.tags & tags
+					: (x) => x.monitor === mon && x.tags & tags
 			);
 			if (idx < 0) idx = windows.length + idx;
 			return windows[idx % windows.length];
@@ -102,7 +105,9 @@ var StateManager = GObject.registerClass(
 		workIndexByHandle(handle) {
 			const window = this.windows.find((x) => x.handle === handle);
 			const windows = this.windows.filter(
-				(x) => x.monitor === window.monitor && x.tags & window.tags
+				this.singleTagset
+					? (x) => x.tags & window.tags
+					: (x) => x.monitor === window.monitor && x.tags & window.tags
 			);
 			return windows.findIndex((x) => x.handle === handle);
 		}
@@ -115,7 +120,9 @@ var StateManager = GObject.registerClass(
 		 */
 		swap(mon, tags, idx, newIdx) {
 			const windows = this.windows.filter(
-				(x) => x.monitor === mon && x.tags & tags
+				this.singleTagset
+					? (x) => x.tags & tags
+					: (x) => x.monitor === mon && x.tags & tags
 			);
 			if (newIdx < 0) newIdx = windows.length + newIdx;
 			newIdx %= windows.length;
@@ -146,15 +153,16 @@ var StateManager = GObject.registerClass(
 		 */
 		render(mon, tags) {
 			const windows = this.windows.filter(
-				(x) => x.monitor === mon && x.tags & tags
+				this.singleTagset
+					? (x) => x.tags & tags
+					: (x) => x.monitor === mon && x.tags & tags
 			);
 			log(`${windows.length} windows for monitor ${mon} with tags ${tags}`);
 			return this._layout(this.monitors[mon], windows);
 		}
 
 		_layout({ layout, nmaster, mfact, focused }, windows) {
-			const focusedW = windows.find((x) => x.handle === focused)
-				?? windows[0];
+			const focusedW = windows.find((x) => x.handle === focused) ?? windows[0];
 
 			switch (layout) {
 				case "monocle":
