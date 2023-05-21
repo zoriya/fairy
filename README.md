@@ -17,6 +17,7 @@ If you want to see what it looks like, see the [tag section](#Tags).
  - Dynamically change the layout (see [layouts](#Layouts)) for more
  - Gaps/Smart gaps
  - Selected window's border
+ - Layout/tags indicator
  - Multi-monitor support
    - Implement tags (read workspace) for monitors other than the primary
    - Option to use only a single taglist for all monitors
