@@ -174,13 +174,14 @@ var Renderer = GObject.registerClass(
 							"to",
 							newW.monitor
 						);
+						this.unfocus(handle);
 						if (oldW) this.render(oldW.monitor);
 						if (newW) this.render(newW.monitor);
 						this._indicator.update();
 					}
 				),
 				global.display.connect("workareas-changed", () => {
-					const nmonitor = global.display.get_n_monitor();
+					const nmonitor = global.display.get_n_monitors();
 					if (nmonitor <= 0) return;
 					for (let i = 0; i < nmonitor; i++) {
 						if (this._state.monitors[i].tags !== 0) continue;
@@ -189,6 +190,7 @@ var Renderer = GObject.registerClass(
 					// Clear selected tags of removed monitors.
 					for (let i = nmonitor; i < this._state.monitors.length; i++) {
 						this._state.monitors[i].tags = 0;
+						this._state.monitors[i].focused = null;
 					}
 				}),
 			];
@@ -289,7 +291,8 @@ var Renderer = GObject.registerClass(
 					}
 					if (!this._isValidWindow(handle)) return;
 					// Ignore workspace change on other monitors since workspaces are only on the primary monitor.
-					if (handle.get_monitor() !== global.display.get_primary_monitor()) return;
+					if (handle.get_monitor() !== global.display.get_primary_monitor())
+						return;
 
 					const [oldW, newW] = this._state.updateByHandle(
 						handle,
@@ -303,6 +306,7 @@ var Renderer = GObject.registerClass(
 						"to",
 						newW.tags
 					);
+					this.unfocus(handle);
 					if (oldW) this.render(oldW.monitor);
 					if (newW) this.render(newW.monitor);
 					this._indicator.update();
@@ -322,6 +326,13 @@ var Renderer = GObject.registerClass(
 			];
 
 			this._state.newWindow(handle);
+		}
+
+		unfocus(handle) {
+			for (let i = 0; i < global.display.get_n_monitor(); i++) {
+				if (this._state.monitors[i].focused !== handle) continue;
+				this._state.monitors[i].focused = null;
+			}
 		}
 
 		/**
@@ -379,6 +390,15 @@ var Renderer = GObject.registerClass(
 						// If the other monitor had only this tag, swap monitor's tags instead.
 						this._state.monitors[i].tags =
 							this._state.monitors[i].tags & ~tags || currTags;
+
+						// If the monitor's focused window is removed from the monitor, unfocus it.
+						// For now, the focus is simply set to null and hopefully gnome will automatically refocus somethign else.
+						const focusedW = this._state.windows.find(
+							(x) => x.handle === this._state.monitors[i].focused
+						);
+						if (focusedW && focusedW.tags & this._state.monitors[i].tags)
+							this._state.monitors[i].focused = null;
+
 						this._setGWorkspaceIfNeeded(i);
 						this.render(i);
 					}
@@ -456,7 +476,7 @@ var Renderer = GObject.registerClass(
 				}
 				if (
 					window.handle["maximized-vertically"] !=
-					window.handle["maximized-horizontally"] ||
+						window.handle["maximized-horizontally"] ||
 					window.handle["maximized-vertically"] != window.maximized
 				) {
 					if (window.maximized) {
@@ -497,7 +517,7 @@ var Renderer = GObject.registerClass(
 			if (mon !== primaryMon) {
 				for (const handle of global.display.list_all_windows()) {
 					if (handle.get_monitor() !== mon) continue;
-					if (windows.find(x => x.handle === handle)) continue;
+					if (windows.find((x) => x.handle === handle)) continue;
 					// Move all windows present on external monitors that should not be.
 					// This allows the gnome's preview to display tags.
 					handle._ignoreMonitorChange = true;
@@ -520,11 +540,11 @@ var Renderer = GObject.registerClass(
 				width:
 					window.width -
 					(window.x === 0 ? outerGaps : gapSize) -
-					(window.x + window.width === monGeo.width ? outerGaps : gapSize),
+					(Math.round(window.x + window.width) === Math.round(monGeo.width) ? outerGaps : gapSize),
 				height:
 					window.height -
 					(window.y === 0 ? outerGaps : gapSize) -
-					(window.y + window.height === monGeo.height ? outerGaps : gapSize),
+					(Math.round(window.y + window.height) === Math.round(monGeo.height) ? outerGaps : gapSize),
 			};
 		}
 	}
