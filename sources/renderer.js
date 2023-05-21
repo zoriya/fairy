@@ -157,6 +157,10 @@ var Renderer = GObject.registerClass(
 				global.display.connect(
 					"window-entered-monitor",
 					(_display, monitor, handle) => {
+						if (handle._ignoreMonitorChange) {
+							handle._ignoreMonitorChange = false;
+							return;
+						}
 						const [oldW, newW] = this._state.updateByHandle(
 							handle,
 							this._state.monitors[monitor].tags
@@ -284,6 +288,9 @@ var Renderer = GObject.registerClass(
 						return;
 					}
 					if (!this._isValidWindow(handle)) return;
+					// Ignore workspace change on other monitors since workspaces are only on the primary monitor.
+					if (handle.get_monitor() !== global.display.get_primary_monitor()) return;
+
 					const [oldW, newW] = this._state.updateByHandle(
 						handle,
 						0b1 << handle.get_workspace().index()
@@ -429,8 +436,10 @@ var Renderer = GObject.registerClass(
 
 			const windows = this._state.render(mon, tags);
 			for (const window of windows) {
-				if (window.handle.get_monitor() !== mon)
+				if (window.handle.get_monitor() !== mon) {
+					window.handle._ignoreMonitorChange = true;
 					window.handle.move_to_monitor(mon);
+				}
 				if (window.handle.get_workspace().index() !== workIdx) {
 					// The window is visible because another tag as been bringed
 					// so we need to ask gnome to move windows (temporarly to the current workspace)
@@ -483,6 +492,19 @@ var Renderer = GObject.registerClass(
 					size.height
 				);
 			}
+
+			const primaryMon = global.display.get_primary_monitor();
+			if (mon !== primaryMon) {
+				for (const handle of global.display.list_all_windows()) {
+					if (handle.get_monitor() !== mon) continue;
+					if (windows.find(x => x.handle === handle)) continue;
+					// Move all windows present on external monitors that should not be.
+					// This allows the gnome's preview to display tags.
+					handle._ignoreMonitorChange = true;
+					handle.move_to_monitor(primaryMon);
+				}
+			}
+
 			this._border.updateBorders();
 		}
 
