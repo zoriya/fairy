@@ -6,15 +6,15 @@ A dynamic tiling window manager for gnome. It is heavily inspired by DWM.
 
 Application's windows are stored in a list. This allows you to navigate via up/down key bindings (default to super J/K).
 Layouts dynamically arrange window in a specific pattern, the default one, the tiling arrange windows in two areas: the master and the stack.
-For other layouts, refer to the [layouts section](##Layouts).
+For other layouts, refer to the [layouts section](#Layouts).
 
 Fairy also implements tags, which is a superset of workspaces, if you don't care you can keep using gnome's workspaces, it will work.
-If you want to see what it looks like, see the [tag section](##Tags).
+If you want to see what it looks like, see the [tag section](#Tags).
 
 
 ## Features
 
- - Dynamically change the layout (see [layouts](##Layouts)) for more
+ - Dynamically change the layout (see [layouts](#Layouts)) for more
  - Gaps/Smart gaps
  - Selected window's border
  - Multi-monitor support
@@ -71,39 +71,39 @@ Recommended binds:
  - Move window to monitor left/right
 
 Conflicting binds:
- - Lock screen (<Super>l)
- - Hide window (<Super>h)
- - Switch to application [1-9] from dock (<Super>[1-9])
+ - Lock screen (`<Super>l`)
+ - Hide window (`<Super>h`)
+ - Switch to application [1-9] from dock (`<Super>[1-9]`)
 
 ### Layout bindings
 
-| Default Keybind  | Action                                                             |
-| ---------------- | ------------------------------------------------------------------ |
-| <Super>m         | Set layout to monocle (only one window in fullscreen)              |
-| <Super>t         | Set layout to tiling (this is the default layout)                  |
-| <Super>d         | Set layout to deck (Like tiling but only display two windows)      |
-| <Super><Shift>f  | Set layout to floating (Effectively disable the extension)         |
-| <Super>l         | Increase the master area by 5%                                     |
-| <Super>h         | Decrease the master area by 5%                                     |
-| <Super>i         | Increase the number of window in the master are                    |
-| <Super>u         | Decrease the number of window in the master are                    |
+| Default Keybind    | Action                                                             |
+| ------------------ | ------------------------------------------------------------------ |
+| `<Super>m`         | Set layout to monocle (only one window in fullscreen)              |
+| `<Super>t`         | Set layout to tiling (this is the default layout)                  |
+| `<Super>d`         | Set layout to deck (Like tiling but only display two windows)      |
+| `<Super><Shift>f`  | Set layout to floating (Effectively disable the extension)         |
+| `<Super>l`         | Increase the master area by 5%                                     |
+| `<Super>h`         | Decrease the master area by 5%                                     |
+| `<Super>i`         | Increase the number of window in the master are                    |
+| `<Super>u`         | Decrease the number of window in the master are                    |
 
 ### Window bindings
 
-| Default Keybind  | Action                                                             |
-| ---------------- | ------------------------------------------------------------------ |
-| <Super>k         | Cycle to the next window                                           |
-| <Super>j         | Cycle to the previous window                                       |
-| <Super><Shift>k  | Swap the current window with next                                  |
-| <Super><Shift>j  | Swap the current window with previous                              |
-| <Super>Return    | Swap the current window with the master                            |
+| Default Keybind    | Action                                                             |
+| ------------------ | ------------------------------------------------------------------ |
+| `<Super>k`         | Cycle to the next window                                           |
+| `<Super>j`         | Cycle to the previous window                                       |
+| `<Super><Shift>k`  | Swap the current window with next                                  |
+| `<Super><Shift>j`  | Swap the current window with previous                              |
+| `<Super>Return`    | Swap the current window with the master                            |
 
 ### Tags bindings
 
-| Default Keybind            | Action                                                              |
-| -------------------------- | ------------------------------------------------------------------- |
-| <Super>[1-9]               | Switch to the selected tag/workspace for the current monitor        |
-| <Super>0                   | Enable all tags                                                     |
-| <Super><Ctrl>[1-9]         | Enable the select tag (add it to the currently active tags)         |
-| <Super><Shift>[1-9]        | Move the focused window to the selected tag/worksapce               |
-| <Super><Ctrl><Shift>[1-9]  | Add the focused window to the selected tag (keep all its other tags)|
+| Default Keybind              | Action                                                              |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `<Super>[1-9]`               | Switch to the selected tag/workspace for the current monitor        |
+| `<Super>0`                   | Enable all tags                                                     |
+| `<Super><Ctrl>[1-9]`         | Enable the select tag (add it to the currently active tags)         |
+| `<Super><Shift>[1-9]`        | Move the focused window to the selected tag/worksapce               |
+| `<Super><Ctrl><Shift>[1-9]`  | Add the focused window to the selected tag (keep all its other tags)|
