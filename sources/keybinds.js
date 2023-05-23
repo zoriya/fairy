@@ -170,7 +170,7 @@ var KeyboardManager = GObject.registerClass(
 						takkenTags |= this._state.monitors[i].tags;
 				}
 				else {
-					takkenTags = ~0;
+					takkenTags = 0;
 				}
 
 				this._state.monitors[mon].tags |= ~takkenTags;
@@ -180,6 +180,7 @@ var KeyboardManager = GObject.registerClass(
 		}
 
 		disable() {
+			log("Removing keybinds...");
 			this._removeBinding("set-layout-tiling");
 			this._removeBinding("set-layout-monocle");
 			this._removeBinding("set-layout-floating");

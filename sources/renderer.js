@@ -127,24 +127,23 @@ var Renderer = GObject.registerClass(
 			for (const signal of this._workspaceSignals) {
 				global.workspace_manager.disconnect(signal);
 			}
-			this._wmSignals = undefined;
+			this._workspaceSignals = undefined;
 
 			for (const window of this._state.windows) {
-				if (window._signals) {
-					for (const signal of window._signals) window.disconnect(signal);
-				}
-				let actor = window.handle.get_compositor_private();
-				if (actor && actor._signals) {
-					for (const signal of actor._signals) actor.disconnect(signal);
-					actor._signals = [];
+				if (window.handle._signals) {
+					for (const signal of window.handle._signals) {
+						window.handle.disconnect(signal);
+					}
+					window.handle._signals = undefined;
 				}
 			}
-			this._state.windows = [];
+			// We do not remove the state's windows array, we want to keep tags when the user suspend the systme.
 
 			this._settings.disconnect("changed");
 		}
 
 		_bindSignals() {
+			log("Binding singals...");
 			this._displaySignals = [
 				global.display.connect("window-created", (_display, window) =>
 					this._waitForWindow(window, () => {
@@ -286,6 +285,7 @@ var Renderer = GObject.registerClass(
 				}),
 				handle.connect("workspace-changed", (handle) => {
 					if (handle._ignoreWorkspaceChange) {
+						log("Ignoring workspace change for", handle.get_title());
 						handle._ignoreWorkspaceChange = false;
 						return;
 					}
@@ -329,7 +329,8 @@ var Renderer = GObject.registerClass(
 		}
 
 		unfocus(handle) {
-			for (let i = 0; i < global.display.get_n_monitor(); i++) {
+			log("NMonitor", global.display.get_n_monitors());
+			for (let i = 0; i < global.display.get_n_monitors(); i++) {
 				if (this._state.monitors[i].focused !== handle) continue;
 				this._state.monitors[i].focused = null;
 			}
@@ -409,16 +410,21 @@ var Renderer = GObject.registerClass(
 			this._indicator.update(mon);
 		}
 
+		_tagToGWorkspace(tags) {
+			// This retrieve the lower tag present in the tags set.
+			const tag = tags & ~(tags - 1);
+			// Retrieve the gnome workspace for the tag (inverse of 0b1 << tag)
+			return Math.log2(tag);
+		}
+
 		_setGWorkspaceIfNeeded(mon) {
 			if (mon !== global.display.get_primary_monitor()) return;
 
 			const tags = this._state.monitors[mon].tags;
-			// This retrieve the lower tag present in the tags set.
-			const tag = tags & ~(tags - 1);
-			if (tags !== tag) return;
-			// Retrieve the gnome workspace for the tag (inverse of 0b1 << tag)
-			const workspace = Math.log2(tag);
-			log("Switching to", tags, tag, workspace);
+			const workspace = this._tagToGWorkspace(tags);
+			// Do not switch g workspace if we simply bring another tag.
+			if (tags !== 0b1 << workspace) return;
+			log("Switching to", tags, workspace);
 
 			global.display
 				.get_workspace_manager()
@@ -514,14 +520,29 @@ var Renderer = GObject.registerClass(
 			}
 
 			const primaryMon = global.display.get_primary_monitor();
-			if (mon !== primaryMon) {
-				for (const handle of global.display.list_all_windows()) {
-					if (handle.get_monitor() !== mon) continue;
-					if (windows.find((x) => x.handle === handle)) continue;
+			// This list all windows that exists, not only visible ones.
+			// TODO: Check if this is okay and if not, edit this.
+			for (const handle of global.display.list_all_windows()) {
+				// Ignore windows that we just moved in.
+				if (windows.find((x) => x.handle === handle)) continue;
+
+				const window = this._state.windows.find((x) => x.handle === handle);
+				if (mon !== primaryMon && handle.get_monitor() === mon) {
 					// Move all windows present on external monitors that should not be.
 					// This allows the gnome's preview to display tags.
+					log("Monitor cleanup", primaryMon, handle.get_monitor());
 					handle._ignoreMonitorChange = true;
 					handle.move_to_monitor(primaryMon);
+				}
+
+				if (!(window.tags & (0b1 << workIdx))) {
+					// We probably just deselected a tag so we bring back windows to their old workspace for the preview.
+					log("Workspace cleanup", window.tags, 0b1 << workIdx);
+					window.handle._ignoreWorkspaceChange = true;
+					window.handle.change_workspace_by_index(
+						this._tagToGWorkspace(window.tags),
+						true
+					);
 				}
 			}
 
@@ -540,11 +561,15 @@ var Renderer = GObject.registerClass(
 				width:
 					window.width -
 					(window.x === 0 ? outerGaps : gapSize) -
-					(Math.round(window.x + window.width) === Math.round(monGeo.width) ? outerGaps : gapSize),
+					(Math.round(window.x + window.width) === Math.round(monGeo.width)
+						? outerGaps
+						: gapSize),
 				height:
 					window.height -
 					(window.y === 0 ? outerGaps : gapSize) -
-					(Math.round(window.y + window.height) === Math.round(monGeo.height) ? outerGaps : gapSize),
+					(Math.round(window.y + window.height) === Math.round(monGeo.height)
+						? outerGaps
+						: gapSize),
 			};
 		}
 	}

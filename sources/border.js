@@ -49,12 +49,15 @@ var BorderManager = GObject.registerClass(
 		}
 
 		disable() {
+			log("Removing the border");
 			this._settings.disconnect("changed");
 			this._border.destroy();
 			this._border = null;
 		}
 
 		updateBorders() {
+			if (!this._border) return;
+
 			// Hide the border during transitions.
 			this._border.hide();
 			this._renderCount++;

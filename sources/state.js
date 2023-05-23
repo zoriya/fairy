@@ -40,13 +40,29 @@ var StateManager = GObject.registerClass(
 		 * @param {Meta.Window} handle
 		 */
 		newWindow(handle) {
+			// Ignore windows that were already tracked before a disable/enable loop.
+			if (this.windows.find((x) => x.handle === handle)) return;
+			const mon = handle.get_monitor();
+			const windowTags = 0b1 << handle.get_workspace().index();
 			const window = {
 				handle,
-				monitor: handle.get_monitor(),
-				tags: this.monitors[handle.get_monitor()].tags,
+				monitor: mon,
+				// If the window does not overlap monitor's tag, it could have been spawned
+				// before the extension has been enabled so we trust the workspace instead of the tags.
+				tags:
+					this.monitors[mon].tags & windowTags
+						? this.monitors[mon].tags
+						: windowTags,
 			};
 			this.monitors[window.monitor].beforeZoom = null;
-			log("New window", window.handle.get_title(), "on tag", window.tags, "monitor", window.monitor);
+			log(
+				"New window",
+				window.handle.get_title(),
+				"on tag",
+				window.tags,
+				"monitor",
+				window.monitor
+			);
 			this.windows.unshift(window);
 		}
 
@@ -92,10 +108,11 @@ var StateManager = GObject.registerClass(
 
 		/**
 		 * @param {Meta.Window} handle
-		 * @returns {number} idx
+		 * @returns {number} idx or -1
 		 */
 		workIndexByHandle(handle) {
 			const window = this.windows.find((x) => x.handle === handle);
+			if (!window) return -1;
 			const windows = this.windows.filter(
 				this.singleTagset
 					? (x) => x.tags & window.tags
@@ -133,8 +150,7 @@ var StateManager = GObject.registerClass(
 				takenTags |= this.monitors[i].tags;
 			}
 			for (let i = 0; i < 9; i++) {
-				if (takenTags & (0b1 << i) === 0)
-					return 0b1 << i;
+				if (takenTags & (0b1 << i === 0)) return 0b1 << i;
 			}
 			return 0;
 		}

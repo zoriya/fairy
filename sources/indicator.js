@@ -120,6 +120,7 @@ var Indicator = GObject.registerClass(
 		}
 
 		disable() {
+			log("Removing the indicator");
 			this._destroyed = true;
 			this._tagIndicator.destroy();
 			this._tagIndicator = null;
