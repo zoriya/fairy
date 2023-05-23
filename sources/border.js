@@ -38,7 +38,7 @@ var BorderManager = GObject.registerClass(
 			});
 			if (global.window_group) global.window_group.add_child(this._border);
 
-			this._settings.connect("changed", () => {
+			this._settingsSignal = this._settings.connect("changed", () => {
 				this.settings = {
 					show: this._settings.get_boolean("focus-border"),
 					color: this._settings.get_string("focus-border-color"),
@@ -50,7 +50,7 @@ var BorderManager = GObject.registerClass(
 
 		disable() {
 			log("Removing the border");
-			this._settings.disconnect("changed");
+			this._settings.disconnect(this._settingsSignal);
 			this._border.destroy();
 			this._border = null;
 		}

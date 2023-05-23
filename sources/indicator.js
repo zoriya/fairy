@@ -116,7 +116,9 @@ var Indicator = GObject.registerClass(
 			this._destroyed = false;
 			this.update();
 
-			this._settings.connect("changed", () => this.update());
+			this._settingsSignal = this._settings.connect("changed", () =>
+				this.update()
+			);
 		}
 
 		disable() {
@@ -132,7 +134,7 @@ var Indicator = GObject.registerClass(
 			this._layoutIndicator = null;
 			this._icon = null;
 
-			this._settings.disconnect("changed");
+			this._settings.disconnect(this._settingsSignal);
 		}
 
 		update() {
@@ -184,8 +186,7 @@ var Indicator = GObject.registerClass(
 			this._windowCount.set_text(windowCount.toString());
 			if (state.layout === "monocle" || state.layout === "deck")
 				this._windowCount.show();
-			else
-				this._windowCount.hide();
+			else this._windowCount.hide();
 			for (const [key, value] of Object.entries(this._layoutPanelItems)) {
 				value.setOrnament(
 					key === state.layout

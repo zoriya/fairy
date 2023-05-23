@@ -43,8 +43,10 @@ var Renderer = GObject.registerClass(
 			this.warpEnabled = this._settings.get_boolean("warp-cursor");
 			this._state.singleTagset = this._settings.get_boolean("single-tagset");
 
+			log("Enabling with state:", JSON.stringify(this._state.windows));
 			for (const window of global.display.list_all_windows())
 				this.trackWindow(window);
+			log("Enabling with state after tracking:", JSON.stringify(this._state.windows));
 
 			const workspace = global.display
 				.get_workspace_manager()
@@ -139,7 +141,7 @@ var Renderer = GObject.registerClass(
 			}
 			// We do not remove the state's windows array, we want to keep tags when the user suspend the systme.
 
-			this._settings.disconnect("changed");
+			this._settings.disconnect(this._settingsSignal);
 		}
 
 		_bindSignals() {
@@ -219,7 +221,7 @@ var Renderer = GObject.registerClass(
 				}),
 			];
 
-			this._settings.connect("changed", (_, key) => {
+			this._settingsSignal = this._settings.connect("changed", (_, key) => {
 				log("Proprety changed", key);
 				switch (key) {
 					case "gap-size":
