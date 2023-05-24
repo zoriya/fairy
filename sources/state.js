@@ -229,7 +229,7 @@ var StateManager = GObject.registerClass(
 						floating: true,
 					}));
 				case "deck":
-					if (windows.length < 2) {
+					if (windows.length <= 2) {
 						return this._layout(
 							{ layout: "tiling", nmaster, mfact, focused },
 							windows
@@ -240,7 +240,9 @@ var StateManager = GObject.registerClass(
 							? windows.splice(0, 2)
 							: [windows[0], focusedW];
 					// Raise the window else lower docks can be above
-					deckWindows[1].handle.raise();
+					// The last focused window is already raised so we dont need to raise it manually. This
+					// also allows us to keep the previous focused window shown if the user switch back focus to master.
+					// deckWindows[1].handle.raise();
 					return this._layout(
 						{ layout: "tiling", nmaster, mfact, focused },
 						deckWindows
