@@ -46,7 +46,6 @@ var Renderer = GObject.registerClass(
 			log("Enabling with state:", JSON.stringify(this._state.windows));
 			for (const window of global.display.list_all_windows())
 				this.trackWindow(window);
-			log("Enabling with state after tracking:", JSON.stringify(this._state.windows));
 
 			const workspace = global.display
 				.get_workspace_manager()
@@ -162,6 +161,14 @@ var Renderer = GObject.registerClass(
 							handle._ignoreMonitorChange = false;
 							return;
 						}
+						if (
+							this._state.windows.find((x) => x.handle === handle)
+								.monitor === monitor
+						) {
+							// Ignore monitor change to the same monitor. This happens when you close the lid of a laptop.
+							log("Ignoring same monitor change", handle.get_title(), monitor);
+							return;
+						}
 						const [oldW, newW] = this._state.updateByHandle(
 							handle,
 							this._state.monitors[monitor].tags
@@ -183,6 +190,7 @@ var Renderer = GObject.registerClass(
 				),
 				global.display.connect("workareas-changed", () => {
 					const nmonitor = global.display.get_n_monitors();
+					log("workarea-changed", nmonitor);
 					if (nmonitor <= 0) return;
 					for (let i = 0; i < nmonitor; i++) {
 						if (this._state.monitors[i].tags !== 0) continue;
@@ -484,7 +492,7 @@ var Renderer = GObject.registerClass(
 				}
 				if (
 					window.handle["maximized-vertically"] !=
-						window.handle["maximized-horizontally"] ||
+					window.handle["maximized-horizontally"] ||
 					window.handle["maximized-vertically"] != window.maximized
 				) {
 					if (window.maximized) {
